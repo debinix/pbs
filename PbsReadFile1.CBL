@@ -10,11 +10,11 @@
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-           SELECT  INDATA ASSIGN TO 'indata.txt'
+           SELECT  INDATA ASSIGN TO 'data/indata.txt'
                ORGANIZATION IS LINE SEQUENTIAL
                FILE STATUS IS INFIL-FS.
 
-           SELECT  FELDATA ASSIGN TO 'feldata.txt'
+           SELECT  FELDATA ASSIGN TO 'data/feldata.txt'
                ORGANIZATION IS LINE SEQUENTIAL
                FILE STATUS IS FELFIL-FS.
 
