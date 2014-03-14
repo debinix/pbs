@@ -7,25 +7,54 @@
 -- ---------------------------------------------------------------------- 
 
 -- ---------------------------------------------------------------------- 
--- Add table "WORKTBL"                                                    
+-- Add table "ADDR"                                                    
 -- ---------------------------------------------------------------------- 
 
-CREATE TABLE WORKTBL (
-    WRK_ID INTEGER NOT NULL,
-    CUSTNO INTEGER NOT NULL,
-    PRODNO INTEGER NOT NULL,
-    ORDNO INTEGER,
-    ORDDATE DATE NOT NULL,
-    DISCOUNT CHAR(2),
-    PRICE INTEGER,
-    QUANTITY SMALLINT,
-    ORDSUM INTEGER,
+CREATE TABLE ADDR (
+    ADDR_ID INTEGER NOT NULL,
+    STREET VARCHAR(254) NOT NULL,
+    POSTNO CHAR(5) NOT NULL,
+    PLACE VARCHAR(254) NOT NULL,
     /* keys */
-    PRIMARY KEY (WRK_ID)
+    PRIMARY KEY (ADDR_ID)
 );
 
-CREATE UNIQUE INDEX idx_worktbl
-	ON WORKTBL(WRK_ID);
+CREATE UNIQUE INDEX idx_addr
+	ON ADDR(ADDR_ID);
+
+-- ---------------------------------------------------------------------- 
+-- Add table "FINDATA"                                                    
+-- ---------------------------------------------------------------------- 
+
+CREATE TABLE FINDATA (
+    FIN_ID INTEGER NOT NULL,
+    VATREGNO VARCHAR(254) NOT NULL,
+    BANKGIRO CHAR(9) NOT NULL,
+    POSTGIRO CHAR(8) NOT NULL,
+    /* keys */
+    PRIMARY KEY (FIN_ID)
+);
+
+CREATE UNIQUE INDEX idx_fin
+	ON FINDATA(FIN_ID);
+
+-- ---------------------------------------------------------------------- 
+-- Add table "ITEM"                                                      
+-- ---------------------------------------------------------------------- 
+
+CREATE TABLE ITEM (
+    ITEM_ID INTEGER NOT NULL,
+    DESCRIPTION VARCHAR(254) NOT NULL,
+    ARTNO VARCHAR(254),
+    UNITDESC VARCHAR(254),
+    QTY DECIMAL(7,2) NOT NULL,
+    PRICE DECIMAL(9,2) NOT NULL,
+    /* keys */
+    PRIMARY KEY (ITEM_ID)
+);
+
+CREATE UNIQUE INDEX idx_item
+	ON ITEM(ITEM_ID);
 
 -- ---------------------------------------------------------------------- 
 -- Add table "DEBTOR"                                                     
@@ -33,19 +62,15 @@ CREATE UNIQUE INDEX idx_worktbl
 
 CREATE TABLE DEBTOR (
     DEBT_ID INTEGER NOT NULL,
-    NAME VARCHAR(100) NOT NULL,
-    ADDRESS VARCHAR(100) NOT NULL,
-    POSTNO CHAR(5) NOT NULL,
-    PLACE VARCHAR(40) NOT NULL,
-    CONTACT VARCHAR(254),
-    NOTES VARCHAR(254),
-    DISCOUNT CHAR(2),
-    STATUS CHAR(1),
-    ORGNO CHAR(11),
-    TAXREGNO CHAR(20),
-    BANKREQ VARCHAR(254),
+    NAME VARCHAR(254) NOT NULL,
+    CONTACT VARCHAR(254) NOT NULL,
+    NOTE VARCHAR(254),
+    ADDR_ID INTEGER NOT NULL,
     /* keys */
-    PRIMARY KEY (DEBT_ID)
+    PRIMARY KEY (DEBT_ID),
+    /* foreign keys */
+    FOREIGN KEY(ADDR_ID)
+	REFERENCES ADDR(ADDR_ID)
 );
 
 CREATE UNIQUE INDEX idx_debtor
@@ -56,175 +81,103 @@ CREATE UNIQUE INDEX idx_debtor
 -- ---------------------------------------------------------------------- 
 
 CREATE TABLE CUSTOMER (
-    CUS_ID INTEGER NOT NULL,
+    CUST_ID INTEGER NOT NULL,
+    CUSTNO VARCHAR (254) NOT NULL,
     NAME VARCHAR(254) NOT NULL,
-    ADDRESS VARCHAR(100) NOT NULL,
-    POSTNO CHAR(5) NOT NULL,
-    PLACE VARCHAR(40) NOT NULL,
-    CONTACT VARCHAR(254),
-    NOTES VARCHAR(254),
-    DISCOUNT CHAR(2),
-    STATUS CHAR(1),
-    ORGNO CHAR(11),
-    TAXREGNO CHAR(20),
-    BANKREQ CHAR(9),
+    BOARDPLACE VARCHAR(254) NOT NULL,
+    OURCONTACT VARCHAR(254) NOT NULL,
+    OURNOTE VARCHAR(254),
+    TEL VARCHAR(254) NOT NULL,
+    EMAIL VARCHAR(254) NOT NULL,
+    WEB VARCHAR(254),
+    ORGNO CHAR(14) NOT NULL,
+    ACTIVE CHAR(1) NOT NULL,
+    ADDR_ID INTEGER NOT NULL,
+    FIN_ID INTEGER NOT NULL,
     /* keys */
-    PRIMARY KEY (CUS_ID)
+    PRIMARY KEY (CUST_ID),
+    /* foreign keys */
+    FOREIGN KEY(ADDR_ID)
+	REFERENCES ADDR(ADDR_ID),
+    FOREIGN KEY(FIN_ID)
+	REFERENCES FINDATA(FIN_ID)
 );
 
 CREATE UNIQUE INDEX idx_customer
-	ON CUSTOMER(CUS_ID);
+	ON CUSTOMER(CUST_ID);
+
 
 -- ---------------------------------------------------------------------- 
--- Add table "COMPANY"                                                    
+-- Add table "INLOG"                                                    
 -- ---------------------------------------------------------------------- 
 
-CREATE TABLE COMPANY (
-    CMP_ID SMALLINT NOT NULL,
-    NAME VARCHAR(100),
-    ADDRESS VARCHAR(100),
-    POSTNO CHARACTER(5),
-    PLACE VARCHAR(40),
-    BOARDPLACE VARCHAR(40),
-    TEL VARCHAR(40),
-    EMAIL VARCHAR(40),
-    BANKGIRO CHAR(9),
-    ORGNO CHAR(11),
-    TAXREGNO VARCHAR(40),
-    TAXCLASS VARCHAR(40),
-    /* keys */
-    PRIMARY KEY (CMP_ID)
-);
-
-CREATE UNIQUE INDEX idx_company
-	ON COMPANY(CMP_ID);
-
--- ---------------------------------------------------------------------- 
--- Add table "ERRDATA"                                                    
--- ---------------------------------------------------------------------- 
-
-CREATE TABLE ERRDATA (
-    ERR_ID INTEGER NOT NULL,
-    CUS_ID INTEGER,
-    FILE_NR VARCHAR(40),
-    DATE DATE,
+CREATE TABLE INLOG (
+    INLOG_ID INTEGER NOT NULL,
+    CUST_ID INTEGER NOT NULL,
+    FILENO VARCHAR(254) NOT NULL,
+    PROCDATE DATE NOT NULL,
+/* what was the reason for ORDNO  */
     ORDNO INTEGER,
-    ERRCODE VARCHAR(254),
+    RESULTCODE SMALLINT NOT NULL,
     /* keys */
-    PRIMARY KEY (ERR_ID),
+    PRIMARY KEY (INLOG_ID),
     /* foreign keys */
-    FOREIGN KEY(CUS_ID)
-	REFERENCES CUSTOMER(CUS_ID)
+    FOREIGN KEY(CUST_ID)
+	REFERENCES CUSTOMER(CUST_ID)
 );
 
 CREATE UNIQUE INDEX idx_errdata
-	ON ERRDATA(ERR_ID);
+	ON INLOG(INLOG_ID);
 
 -- ---------------------------------------------------------------------- 
 -- Add table "SERVICE"                                                    
 -- ---------------------------------------------------------------------- 
 
 CREATE TABLE SERVICE (
-    SRV_ID SMALLINT NOT NULL,
-    DESCRIPTION VARCHAR(40) NOT NULL,
-    CHARGE DECIMAL(3,2) NOT NULL,
-    CUS_ID INTEGER,
+    SRV_ID INTEGER NOT NULL,
+    ARTNO VARCHAR(254),
+    DESCRIPTION VARCHAR(254) NOT NULL,
+    CHARGE DECIMAL(5,2) NOT NULL,
+    CUST_ID INTEGER NOT NULL,
+    DELRATE DECIMAL(3,2) NOT NULL,
+    DUEDAYS SMALLINT NOT NULL,
     /* keys */
     PRIMARY KEY (SRV_ID),
     /* foreign keys */
-    FOREIGN KEY(CUS_ID)
-	REFERENCES CUSTOMER(CUS_ID)
+    FOREIGN KEY(CUST_ID)
+	REFERENCES CUSTOMER(CUST_ID)
 );
 
 CREATE UNIQUE INDEX idx_service
 	ON SERVICE(SRV_ID);
 
--- ---------------------------------------------------------------------- 
--- Add table "INMETA"                                                     
--- ---------------------------------------------------------------------- 
-
-CREATE TABLE INMETA (
-    FILE_ID INTEGER NOT NULL,
-    CMP_ID SMALLINT,
-    PROCESSED CHAR(1),
-    /* keys */
-    PRIMARY KEY (FILE_ID),
-    /* foreign keys */
-    FOREIGN KEY(CMP_ID)
-	REFERENCES COMPANY(CMP_ID)
-);
-
-CREATE UNIQUE INDEX idx_inmeta
-	ON INMETA(FILE_ID);
-
 
 -- ---------------------------------------------------------------------- 
--- Add table "ARCHINV"                                                  
--- ---------------------------------------------------------------------- 
-
-CREATE TABLE ARCHINV (
-    ARCH_ID INTEGER NOT NULL,
-    CUS_ID INTEGER NOT NULL,
-    DEBT_ID INTEGER NOT NULL,
-    STATUS SMALLINT,
-    INVDATE DATE,
-    INVSUM DECIMAL(9,2),
-    VAT DECIMAL(3,2),
-    /* keys */
-    PRIMARY KEY (ARCH_ID),
-    /* foreign keys */
-    FOREIGN KEY(CUS_ID)
-	REFERENCES CUSTOMER(CUS_ID),
-    FOREIGN KEY(DEBT_ID)
-	REFERENCES DEBTOR(DEBT_ID)
-);
-
-CREATE UNIQUE INDEX idx_archinv
-	ON ARCHINV(ARCH_ID);
-
-
--- ---------------------------------------------------------------------- 
--- Add table "INVOICE"                                                  
+-- Add table "INVOICE"
+--  INVSTATE: 0=received-and-accepted, 1=printed, 2=remainded, 
+--                   3=transfer-to-collect-closed, 9=closed-with-customer
 -- ---------------------------------------------------------------------- 
 
 CREATE TABLE INVOICE (
     INV_ID INTEGER NOT NULL,
-    CUS_ID INTEGER NOT NULL,
+    CUST_ID INTEGER NOT NULL,
     DEBT_ID INTEGER NOT NULL,
-    STATUS SMALLINT,
+    INVSTATE SMALLINT NOT NULL,  
+    INVNO VARCHAR (254) NOT NULL,  
+    CUSTNO VARCHAR (254) NOT NULL,
     INVDATE DATE,
-    INVSUM DECIMAL(9,2),
     VAT DECIMAL(3,2) NOT NULL,
     /* keys */
     PRIMARY KEY (INV_ID),
     /* foreign keys */
-    FOREIGN KEY(CUS_ID)
-	REFERENCES CUSTOMER(CUS_ID),
+    FOREIGN KEY(CUST_ID)
+	REFERENCES CUSTOMER(CUST_ID),
     FOREIGN KEY(DEBT_ID)
 	REFERENCES DEBTOR(DEBT_ID)
 );
 
 CREATE UNIQUE INDEX idx_invoice
 	ON INVOICE(INV_ID);
-
-
--- ---------------------------------------------------------------------- 
--- Add table "ITEM"                                                      
--- ---------------------------------------------------------------------- 
-
-CREATE TABLE ITEM (
-    ITEM_ID INTEGER NOT NULL,
-    DESCRIPTION VARCHAR(254),
-    PARTNO VARCHAR(40),
-    UNIT VARCHAR(25),
-    ITEMQTY DECIMAL(7,2),
-    UNITPRICE DECIMAL(9,2),
-    /* keys */
-    PRIMARY KEY (ITEM_ID)
-);
-
-CREATE UNIQUE INDEX idx_item
-	ON ITEM(ITEM_ID);
 
 -- ---------------------------------------------------------------------- 
 -- Add table "INVITEM"                                                    
@@ -245,20 +198,4 @@ CREATE TABLE INVITEM (
 CREATE UNIQUE INDEX idx_invitem
 	ON INVITEM(INV_ID,ITEM_ID);
 
--- ---------------------------------------------------------------------- 
--- Add table "CUSPROD"   -  
--- Internal development validation table                                          
--- ---------------------------------------------------------------------- 
 
-CREATE TABLE CUSPROD (
-    PROD_ID INTEGER NOT NULL,
-    NAME VARCHAR(254) NOT NULL,
-    ARTICLE_ID VARCHAR(30) NOT NULL,
-    PRICE INTEGER NOT NULL,
-    VAT DECIMAL(3,2) NOT NULL,
-    /* keys */
-    PRIMARY KEY (PROD_ID)
-);
-
-CREATE UNIQUE INDEX idx_cusprod
-	ON CUSPROD(PROD_ID);
