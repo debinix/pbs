@@ -38,6 +38,17 @@
 
            EXEC SQL INCLUDE FINDATA END-EXEC.
 
+      *    declared cursors
+
+      *    list PBS Ekonomi customers
+           EXEC SQL
+               DECLARE BCURS1 CURSOR FOR
+               SELECT C.CUST_ID, C.ORGNO, C.NAME
+               FROM TUTORIAL.CUSTOMER C
+               WHERE C.CUSTNO > 999
+               ORDER BY C.CUST_ID
+           END-EXEC
+
 
       *    switches
        01  menu-switches.
@@ -347,13 +358,6 @@
       **********************************************************
        K0120-display-customer-list.
 
-      *    list defined customers
-           EXEC SQL
-               DECLARE BCURS1 CURSOR FOR
-               SELECT C.CUST_ID, C.ORGNO
-               FROM TUTORIAL.CUSTOMER C
-               ORDER BY C.CUST_ID
-           END-EXEC
 
            DISPLAY '-----------------'
            DISPLAY 'BEFINTLIGA KUNDER'
@@ -365,24 +369,30 @@
 
            EXEC SQL
                FETCH BCURS1
-                   INTO :CUSTOMER-CUST-ID, :CUSTOMER-ORGNO
+                   INTO :CUSTOMER-CUST-ID, :CUSTOMER-ORGNO,
+                        :CUSTOMER-NAME
            END-EXEC
 
            PERFORM UNTIL SQLCODE NOT = ZERO
 
-               DISPLAY CUSTOMER-CUST-ID  '|' CUSTOMER-ORGNO '|'
+               DISPLAY CUSTOMER-CUST-ID
+                       '|' CUSTOMER-ORGNO
+                       '|' CUSTOMER-NAME-TEXT
 
       *        fetch next row
+               MOVE SPACE TO CUSTOMER-NAME-TEXT
+
                EXEC SQL
                FETCH BCURS1
-                   INTO :CUSTOMER-CUST-ID, :CUSTOMER-ORGNO
+                   INTO :CUSTOMER-CUST-ID, :CUSTOMER-ORGNO,
+                        :CUSTOMER-NAME
                END-EXEC
 
            END-PERFORM
 
       *    end of data
-           IF SQLCODE NOT = 100
-              DISPLAY 'SQL Error'
+           IF SQLSTATE NOT = "02000"
+               PERFORM Z0900-error-routine
            END-IF
 
       *    close cursor sum up revenue
@@ -502,4 +512,34 @@
            .
 
       **********************************************************
-           
+       Z0900-error-routine.
+
+      *    simple error check - see pp 277 for improved version
+           DISPLAY 'ERROR SQLCODE: ' SQLCODE
+
+      *    SQLSTATE for XDB may be different from DB2 and other stds
+           EVALUATE SQLSTATE
+
+              WHEN "02000"
+                  DISPLAY 'Data återfinns ej i databasen!'
+              WHEN "24501"
+                  DISPLAY 'Cursorn öppnades ej korrekt (SQL syntax).'
+              WHEN "21000"
+                  DISPLAY 'Embedded SQL returnerade mer än en rad.'
+              WHEN "08003"
+              WHEN "08001"
+                  DISPLAY 'Anslutning till databas misslyckades.'
+              WHEN "23503"
+                  DISPLAY 'Ej giltigt namn för Constraint (fk).'
+              WHEN "42612"
+              WHEN "37512"
+                  DISPLAY 'Kan ej köra direkt SQL (ev SQL syntax)'
+              WHEN SPACE
+                  DISPLAY 'Obekant fel!'
+              WHEN OTHER
+                  DISPLAY 'SQLSTATE : ' SQLSTATE
+
+            END-EVALUATE
+
+            .
+      **********************************************************
