@@ -349,7 +349,7 @@
 
       *    list defined customers
            EXEC SQL
-               DECLARE CURS1 CURSOR FOR
+               DECLARE BCURS1 CURSOR FOR
                SELECT C.CUST_ID, C.ORGNO
                FROM TUTORIAL.CUSTOMER C
                ORDER BY C.CUST_ID
@@ -360,21 +360,21 @@
            DISPLAY '-----------------'
 
            EXEC SQL
-               OPEN CURS1
+               OPEN BCURS1
            END-EXEC
 
            EXEC SQL
-               FETCH CURS1
+               FETCH BCURS1
                    INTO :CUSTOMER-CUST-ID, :CUSTOMER-ORGNO
            END-EXEC
 
            PERFORM UNTIL SQLCODE NOT = ZERO
 
-               DISPLAY CUSTOMER-CUST-ID  '|' CUSTOMER-ORGNO
+               DISPLAY CUSTOMER-CUST-ID  '|' CUSTOMER-ORGNO '|'
 
       *        fetch next row
                EXEC SQL
-               FETCH CURS1
+               FETCH BCURS1
                    INTO :CUSTOMER-CUST-ID, :CUSTOMER-ORGNO
                END-EXEC
 
@@ -387,7 +387,7 @@
 
       *    close cursor sum up revenue
            EXEC SQL
-               CLOSE CURS1
+               CLOSE BCURS1
            END-EXEC
 
            .
