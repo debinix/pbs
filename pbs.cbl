@@ -1,23 +1,45 @@
-      *********************************************************
+      **********************************************************
        IDENTIFICATION DIVISION.
-       PROGRAM-ID. pbs AS 'pbs.cbl'.
-       *>
-       *> Authors: Peter B, Bertil K and Sergejs S.
-       *> Purpose: Manage an invoice print company (PBS)
-       *> Initial Version Created: 2014-03-11
-       *>
-       *>*******************************************************
+       PROGRAM-ID. pbs.
+      *
+      * Authors: Peter B, Bertil K and Sergejs S.
+      * Purpose: Manage an invoice print company (PBS)
+      * Initial Version Created: 2014-03-11
+      *
+      **********************************************************
        ENVIRONMENT DIVISION.
-       *>-------------------------------------------------------
+      *---------------------------------------------------------
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
-       *>*******************************************************
+      **********************************************************
        DATA DIVISION.
-       *>-------------------------------------------------------
+      *---------------------------------------------------------
        FILE SECTION.
-       *>******************************************************
-       WORKING-STORAGE SECTION.  
-       *> switches
+      **********************************************************
+       WORKING-STORAGE SECTION.
+
+           EXEC SQL INCLUDE SQLCA END-EXEC.
+
+           EXEC SQL INCLUDE DEBTOR END-EXEC.
+
+           EXEC SQL INCLUDE INVOICE END-EXEC.
+
+           EXEC SQL INCLUDE INVITEM END-EXEC.
+
+           EXEC SQL INCLUDE ITEM END-EXEC.
+
+           EXEC SQL INCLUDE ADDR END-EXEC.
+
+           EXEC SQL INCLUDE CUSTOMER END-EXEC.
+
+           EXEC SQL INCLUDE INLOG END-EXEC.
+
+           EXEC SQL INCLUDE SRV END-EXEC.
+
+           EXEC SQL INCLUDE FINDATA END-EXEC.
+
+
+      *    switches
        01  menu-switches.
            05 is-exit-application-switch      PIC X(1) VALUE 'N'.
                88  is-exit-application                 VALUE 'Y'.
@@ -31,19 +53,19 @@
                88  is-exit-customer-menu               VALUE 'Y'.
            05 is-exit-product-menu-switch     PIC X(1) VALUE 'N'.
                88  is-exit-product-menu                VALUE 'Y'.
-           05 is-exit-maintenance-menu-switch PIC X(1) VALUE 'N'.
+           05 is-exit-admin-menu-switch       PIC X(1) VALUE 'N'.
                88  is-exit-maintenance-menu            VALUE 'Y'.
            05 is-exit-statistics-menu-switch  PIC X(1) VALUE 'N'.
                88  is-exit-statistics-menu             VALUE 'Y'.
 
-       *>  Various generic variables
+      *    Various generic variables
        01  wc-accept                    PIC X(2)    VALUE SPACE.
        
-       *>  Various constants
+      *    Various constants
        01  HEADLINE                     PIC X(72)   VALUE ALL '-'.
        
            
-       *>********************************************************
+      **********************************************************
        PROCEDURE DIVISION.
        0000-main.
 
@@ -54,13 +76,13 @@
            GOBACK
            .
 
-       *>*******************************************************
+      **********************************************************
        A0100-init.
 
            CONTINUE
            .
 
-       *>*******************************************************
+      **********************************************************
        B0100-show-main-menu.
 
            PERFORM UNTIL is-exit-application
@@ -92,7 +114,7 @@
            END-PERFORM
            .
 
-       *>*******************************************************
+      **********************************************************
        B100-diplay-main-menu-list.
        
            DISPLAY HEADLINE
@@ -112,7 +134,7 @@
            ACCEPT wc-accept
            .     
 
-       *>*******************************************************
+      **********************************************************
        C0100-load-invoices.
 
            MOVE 'N' TO is-exit-load-file-menu-switch
@@ -122,7 +144,7 @@
                EVALUATE wc-accept
 
                    WHEN '11'
-                       *> PERFORM C0120-process-import-file
+      *                PERFORM C0120-process-import-file
                        MOVE SPACE TO wc-accept
                    WHEN '99'
                        SET is-exit-load-file-menu TO TRUE
@@ -134,7 +156,7 @@
            END-PERFORM
            .
 
-       *>*******************************************************
+      **********************************************************
        C110-diplay-load-invoices-menu.
 
            DISPLAY HEADLINE
@@ -148,7 +170,7 @@
            ACCEPT wc-accept
            .
 
-       *>********************************************************
+      **********************************************************
        E0100-submit-invoices.
 
            MOVE 'N' TO is-exit-print-menu-switch
@@ -158,13 +180,13 @@
                EVALUATE wc-accept
 
                    WHEN '21'
-                       *> PERFORM E0120-process-all-out-invoices
+      *                PERFORM E0120-process-all-out-invoices
                        MOVE SPACE TO wc-accept
                    WHEN '22'
-                       *> PERFORM E0130-process-one-out-invoice
+      *                PERFORM E0130-process-one-out-invoice
                        MOVE SPACE TO wc-accept
                    WHEN '27'
-                       *> PERFORM E0140-submit-customer-invoice
+      *                PERFORM E0140-submit-customer-invoice
                        MOVE SPACE TO wc-accept
                    WHEN '99'
                        SET is-exit-print-menu TO TRUE
@@ -176,7 +198,7 @@
            END-PERFORM
            .
 
-       *>********************************************************
+      **********************************************************
        E110-diplay-print-menu.
 
            DISPLAY HEADLINE
@@ -194,7 +216,7 @@
            .
 
 
-       *>********************************************************
+      **********************************************************
        G0100-statistics.
 
            MOVE 'N' TO is-exit-statistics-menu-switch
@@ -204,10 +226,10 @@
                EVALUATE wc-accept
 
                    WHEN '31'
-                       *> PERFORM G0120-display-in-process-logs
+      *                PERFORM G0120-display-in-process-logs
                        MOVE SPACE TO wc-accept
                    WHEN '32'
-                       *> PERFORM G0130-display-out-process-logs
+      *                PERFORM G0130-display-out-process-logs
                        MOVE SPACE TO wc-accept
                    WHEN '99'
                        SET is-exit-statistics-menu TO TRUE
@@ -219,7 +241,7 @@
            END-PERFORM
            .
 
-       *>*******************************************************
+      **********************************************************
        G110-diplay-statistics-menu.
 
            DISPLAY HEADLINE
@@ -234,20 +256,20 @@
            ACCEPT wc-accept
            .
 
-       *>********************************************************
+      **********************************************************
        I0100-company-reports.
 
            MOVE 'N' TO is-exit-pbs-rpt-menu-switch
            PERFORM UNTIL is-exit-pbs-rpt-menu
 
-               PERFORM I110-diplay-company-report-menu
+               PERFORM I110-diplay-cmp-report-menu
                EVALUATE wc-accept
 
                    WHEN '41'
-                       *> PERFORM I0120-display-monthly-rpt
+      *                PERFORM I0120-display-monthly-rpt
                        MOVE SPACE TO wc-accept
                    WHEN '42'
-                       *> PERFORM I0130-display-accumulated-rpt
+      *                PERFORM I0130-display-accumulated-rpt
                        MOVE SPACE TO wc-accept
                    WHEN '99'
                        SET is-exit-pbs-rpt-menu TO TRUE
@@ -259,8 +281,8 @@
            END-PERFORM
            .
 
-       *>*******************************************************
-       I110-diplay-company-report-menu.
+      **********************************************************
+       I110-diplay-cmp-report-menu.
 
            DISPLAY HEADLINE
            DISPLAY '*** PBS INTERNA RAPPORTER ***'
@@ -274,7 +296,7 @@
            ACCEPT wc-accept
            .
 
-       *>********************************************************
+      **********************************************************
        K0100-update-customers.
 
            MOVE 'N' TO is-exit-customer-menu-switch
@@ -284,16 +306,16 @@
                EVALUATE wc-accept
 
                    WHEN '51'
-                       *> PERFORM K0120-display-customer-list
+                       PERFORM K0120-display-customer-list
                        MOVE SPACE TO wc-accept
                    WHEN '52'
-                       *> PERFORM K0130-update-customer
+      *                PERFORM K0130-update-customer
                        MOVE SPACE TO wc-accept
                    WHEN '53'
-                       *> PERFORM K0140-add-new-customer
+      *                PERFORM K0140-add-new-customer
                        MOVE SPACE TO wc-accept
                    WHEN '54'
-                       *> PERFORM K0150-inactivate-customer
+      *                PERFORM K0150-inactivate-customer
                        MOVE SPACE TO wc-accept
                    WHEN '99'
                        SET is-exit-customer-menu TO TRUE
@@ -305,7 +327,7 @@
            END-PERFORM
            .
 
-       *>*******************************************************
+      **********************************************************
        K110-diplay-customer-menu.
 
            DISPLAY HEADLINE
@@ -322,7 +344,55 @@
            ACCEPT wc-accept
            .
 
-       *>*******************************************************
+      **********************************************************
+       K0120-display-customer-list.
+
+      *    list defined customers
+           EXEC SQL
+               DECLARE CURS1 CURSOR FOR
+               SELECT C.CUST_ID, C.ORGNO
+               FROM TUTORIAL.CUSTOMER C
+               ORDER BY C.CUST_ID
+           END-EXEC
+
+           DISPLAY '-----------------'
+           DISPLAY 'BEFINTLIGA KUNDER'
+           DISPLAY '-----------------'
+
+           EXEC SQL
+               OPEN CURS1
+           END-EXEC
+
+           EXEC SQL
+               FETCH CURS1
+                   INTO :CUSTOMER-CUST-ID, :CUSTOMER-ORGNO
+           END-EXEC
+
+           PERFORM UNTIL SQLCODE NOT = ZERO
+
+               DISPLAY CUSTOMER-CUST-ID  '|' CUSTOMER-ORGNO
+
+      *        fetch next row
+               EXEC SQL
+               FETCH CURS1
+                   INTO :CUSTOMER-CUST-ID, :CUSTOMER-ORGNO
+               END-EXEC
+
+           END-PERFORM
+
+      *    end of data
+           IF SQLCODE NOT = 100
+              DISPLAY 'SQL Error'
+           END-IF
+
+      *    close cursor sum up revenue
+           EXEC SQL
+               CLOSE CURS1
+           END-EXEC
+
+           .
+
+      **********************************************************
        M0100-update-products.
 
            MOVE 'N' TO is-exit-product-menu-switch
@@ -332,16 +402,16 @@
                EVALUATE wc-accept
 
                    WHEN '61'
-                       *> PERFORM M0120-display-product-list
+      *                PERFORM M0120-display-product-list
                        MOVE SPACE TO wc-accept
                    WHEN '62'
-                       *> PERFORM M0130-update-product
+      *                PERFORM M0130-update-product
                        MOVE SPACE TO wc-accept
                    WHEN '63'
-                       *> PERFORM M0140-add-new-product
+      *                PERFORM M0140-add-new-product
                        MOVE SPACE TO wc-accept
                    WHEN '64'
-                       *> PERFORM M0150-inactivate-product
+      *                PERFORM M0150-inactivate-product
                        MOVE SPACE TO wc-accept
                    WHEN '99'
                        SET is-exit-product-menu TO TRUE
@@ -354,7 +424,7 @@
            .
 
 
-       *>********************************************************
+      **********************************************************
        M110-diplay-product-menu.
 
            DISPLAY HEADLINE
@@ -371,23 +441,23 @@
            ACCEPT wc-accept
            .
 
-       *>********************************************************
+      **********************************************************
        X0100-maintenance.
 
-           MOVE 'N' TO is-exit-maintenance-menu-switch
+           MOVE 'N' TO is-exit-admin-menu-switch
            PERFORM UNTIL is-exit-maintenance-menu
 
                PERFORM X110-diplay-maintenance-menu
                EVALUATE wc-accept
 
                    WHEN '71'
-                       *> PERFORM X0120-display-company-data
+      *                PERFORM X0120-display-company-data
                        MOVE SPACE TO wc-accept
                    WHEN '72'
-                       *> PERFORM X0130-update-company-data
+      *                PERFORM X0130-update-company-data
                        MOVE SPACE TO wc-accept
                    WHEN '73'
-                       *> PERFORM X0140-print-copy-of-invoice
+      *                PERFORM X0140-print-copy-of-invoice
                        MOVE SPACE TO wc-accept
                    WHEN '99'
                        SET is-exit-maintenance-menu TO TRUE
@@ -399,7 +469,7 @@
            END-PERFORM
            .
 
-       *>********************************************************
+      **********************************************************
        X110-diplay-maintenance-menu.
 
            DISPLAY HEADLINE
@@ -415,14 +485,14 @@
            ACCEPT wc-accept
            .
 
-       *>********************************************************
+      **********************************************************
        Z0100-exit-application.
        
-           *> other terminating actions
+      *    other terminating actions
 
 
 
-           *> tell user
+
            DISPLAY HEADLINE
            DISPLAY '*** Avslutar Programmet ***'
            DISPLAY SPACE
@@ -431,5 +501,5 @@
            ACCEPT wc-accept
            .
 
-       *>********************************************************
+      **********************************************************
            
