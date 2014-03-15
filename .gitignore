@@ -19,5 +19,6 @@ LOADLIB/*.int
 
 *.mvt
 
+# Ignore XDB error-message files
 
-
+DATA/*.ERR
