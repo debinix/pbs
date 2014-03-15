@@ -130,10 +130,10 @@ CREATE UNIQUE INDEX idx_errdata
 	ON INLOG(INLOG_ID);
 
 -- ---------------------------------------------------------------------- 
--- Add table "SERVICE"                                                    
+-- Add table "SRV"                                                    
 -- ---------------------------------------------------------------------- 
 
-CREATE TABLE SERVICE (
+CREATE TABLE SRV (
     SRV_ID INTEGER NOT NULL,
     ARTNO VARCHAR(254),
     DESCRIPTION VARCHAR(254) NOT NULL,
@@ -148,8 +148,8 @@ CREATE TABLE SERVICE (
 	REFERENCES CUSTOMER(CUST_ID)
 );
 
-CREATE UNIQUE INDEX idx_service
-	ON SERVICE(SRV_ID);
+CREATE UNIQUE INDEX idx_SRV
+	ON SRV(SRV_ID);
 
 
 -- ---------------------------------------------------------------------- 
