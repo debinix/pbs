@@ -111,15 +111,15 @@ DELETE FROM CUSTOMER;
 
 INSERT INTO CUSTOMER
 (CUST_ID,CUSTNO,NAME,BOARDPLACE,OURCONTACT,OURNOTE, TEL,EMAIL,WEB,ORGNO,ACTIVE,ADDR_ID,FIN_ID)
-VALUES (1,'100','PBS Ekonomi', 'Stockholm','PBS Team', NULL, '08-45 02 230','pbs@example.com','www.example.com','999999-9999','Y',1,1);
+VALUES (1,0,'PBS Ekonomi', 'Stockholm','PBS Team', NULL, '08-45 02 230','pbs@example.com','www.example.com','999999-9999','Y',1,1);
 
 INSERT INTO CUSTOMER
 (CUST_ID,CUSTNO,NAME,BOARDPLACE,OURCONTACT,OURNOTE, TEL,EMAIL,WEB,ORGNO,ACTIVE,ADDR_ID,FIN_ID)
-VALUES (2,'1001','Chokladfabriken', 'Stockholm','Träputte Bordsson', NULL, '08-987 654321','putte@tra-example.com',NULL,'012345-6789','Y',2,2);
+VALUES (2,1000,'Chokladfabriken', 'Stockholm','Träputte Bordsson', NULL, '08-987 654321','putte@tra-example.com',NULL,'012345-6789','Y',2,2);
 
 INSERT INTO CUSTOMER
 (CUST_ID,CUSTNO,NAME,BOARDPLACE,OURCONTACT,OURNOTE, TEL,EMAIL,WEB,ORGNO,ACTIVE,ADDR_ID,FIN_ID)
-VALUES (3,'1002','Mina Möbler', 'Stockholm','Hilda Exempelsson', NULL, '08-580 12345','hilda@mm-example.com','www.mm-example.com','55443322-1111','Y',3,3);
+VALUES (3,1001,'Mina Möbler', 'Stockholm','Hilda Exempelsson', NULL, '08-580 12345','hilda@mm-example.com','www.mm-example.com','654321-1111','Y',3,3);
 
 
 
