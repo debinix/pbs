@@ -1,0 +1,23 @@
+# Git ignore for MFE Cobol project PBS
+
+# Ignore top level directories for local build
+
+LOADLIB/*.idy
+LOADLIB/*.int
+
+# Ignore the local named project file.
+
+*.MVP
+
+# Igonore some MFE internal files
+
+*.DAT
+
+*.DBS
+
+*.gcf
+
+*.mvt
+
+
+
