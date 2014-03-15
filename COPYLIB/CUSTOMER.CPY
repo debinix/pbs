@@ -3,7 +3,7 @@
            (
               CUST_ID                        INT
                                              NOT NULL,
-              CUSTNO                         VARCHAR (254)
+              CUSTNO                         INT
                                              NOT NULL,
               NAME                           VARCHAR (254)
                                              NOT NULL,
@@ -17,7 +17,7 @@
               EMAIL                          VARCHAR (254)
                                              NOT NULL,
               WEB                            VARCHAR (254),
-              ORGNO                          CHAR (14)
+              ORGNO                          CHAR (11)
                                              NOT NULL,
               ACTIVE                         CHAR (1)
                                              NOT NULL,
@@ -31,9 +31,7 @@
 
        01  CUSTOMER.
            03 CUSTOMER-CUST-ID               PIC S9(9) COMP.
-           03 CUSTOMER-CUSTNO.
-              49 CUSTOMER-CUSTNO-LEN         PIC S9(4) COMP.
-              49 CUSTOMER-CUSTNO-TEXT        PIC X(254).
+           03 CUSTOMER-CUSTNO                PIC S9(9) COMP.
            03 CUSTOMER-NAME.
               49 CUSTOMER-NAME-LEN           PIC S9(4) COMP.
               49 CUSTOMER-NAME-TEXT          PIC X(254).
@@ -55,7 +53,7 @@
            03 CUSTOMER-WEB.
               49 CUSTOMER-WEB-LEN            PIC S9(4) COMP.
               49 CUSTOMER-WEB-TEXT           PIC X(254).
-           03 CUSTOMER-ORGNO                 PIC X(14).
+           03 CUSTOMER-ORGNO                 PIC X(11).
            03 CUSTOMER-ACTIVE                PIC X.
            03 CUSTOMER-ADDR-ID               PIC S9(9) COMP.
            03 CUSTOMER-FIN-ID                PIC S9(9) COMP.
