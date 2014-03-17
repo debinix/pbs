@@ -1,11 +1,11 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PbsRead.
-       *> Koden är inte testat. Den är inte färdig !!!!!
-       *>
-       *> Authors: Peter B, Bertil K and Sergejs S.
-       *> Purpose: Manage an invoice print company (PBS)
-       *> Initial Version Created: 2014-03-11
-       *>
+      **> Koden är inte testat. Den är inte färdig !!!!!
+      **>
+      **> Authors: Peter B, Bertil K and Sergejs S.
+      **> Purpose: Manage an invoice print company (PBS)
+      **> Initial Version Created: 2014-03-11
+      **>
 
        ENVIRONMENT DIVISION.
        INPUT-OUTPUT SECTION.
@@ -40,18 +40,11 @@
                88  END-POST-EXIST          VALUE 'Y'.
            05  VALID-POST-FILE-SW      PIC X VALUE 'Y'.
                88  VALID-POST-FILE         VALUE 'Y'.
-           05  VALID-FILE-NUMBER-SW      PIC X VALUE 'Y'.
-               88  VALID-FILE-NUMBER       VALUE 'Y'.
-           05 VALID-CUSTOMER-SW        PIC X VALUE 'Y'.
-               88  VALID-CUSTOMER          VALUE 'Y'.
-           05 VALID-ORDER-SW           PIC X VALUE 'Y'.
-               88  VALID-ORDER             VALUE 'Y'.
-           05 VALID-ARTIKEL-SW         PIC X VALUE 'Y'.
-               88  VALID-ARTIKEL           VALUE 'Y'.
-           05 VALID-ARTIKEL-SUMMA-SW   PIC X VALUE 'Y'.
-               88  VALID-ARTIKEL-SUMMA     VALUE 'Y'.
            05 VALID-POSTER-COUNTS-SW   PIC X VALUE 'Y'.
                88  VALID-POSTER-COUNTS     VALUE 'Y'.
+           05  VALID-ARTIKEL-NR-SW     PIC X VALUE 'Y'.
+               88  VALID-ARTIKEL-NR        VALUE 'Y'.
+
 
        01  FILE-STATUS-FIELDS.
            05 INFIL-FS                 PIC XX.
@@ -88,8 +81,6 @@
            05  GELONR-20       PIC X(10).
            05  FILLER          PIC X(67).
 
-      *01  OLD-ORDNR           PIC 9(9)    VALUE ZERO.
-
        01  ARTIKEL-POST-30.
            05  POSTTYP-30      PIC X(2).
            05  ARTNR-30        PIC X(10).
@@ -121,6 +112,22 @@
 
        000-POST-CUST.
 
+           PERFORM 100-INIT
+           PERFORM 100-READ-CUST-FILE UNTIL EOF.
+           PERFORM 100-END
+           IF  VALID-POST-FILE
+               PERFORM 101-INIT
+               PERFORM 101-READ-CUST-FILE UNTIL EOF.
+           CLOSE INDATA FELDATA
+           STOP RUN.
+      **************************
+
+       100-INIT.
+           MOVE 'N' TO END-OF-FILE
+           MOVE 'N' TO START-POST-EXIST-SW
+           MOVE 'N' TO END-POST-EXIST-SW
+           MOVE ZERO TO POSTER-COUNT
+
            OPEN INPUT INDATA
                 OUTPUT FELDATA
 
@@ -130,53 +137,72 @@
                END-READ
            ELSE
                SET EOF TO TRUE
-               DISPLAY ' Indata file error: '
-           END-IF
+               DISPLAY ' Indata file error: '.
+      ***********************
 
-           MOVE 'N' TO START-POST-EXIST-SW
-           MOVE 'N' TO END-POST-EXIST-SW
-           MOVE 'Y' TO VALID-FILE-NUMBER-SW
-           MOVE ZERO TO POSTER-COUNT
+       100-END.
+       CLOSE INDATA.
+      ***********************
 
-           PERFORM 100-READ-CUST-FILE UNTIL EOF.
+       101-INIT.
 
-           CLOSE INDATA FELDATA
-           STOP RUN.
-
-      **********************************************************
+           MOVE 'N' TO END-OF-FILE
+           OPEN INPUT INDATA
+           IF INFIL-SUCCESSFUL
+               READ INDATA
+                   AT END SET EOF TO TRUE
+               END-READ
+           ELSE
+               SET EOF TO TRUE
+               DISPLAY ' Indata file error: '.
+      ***********************
 
        100-READ-CUST-FILE.
 
            MOVE 'Y' TO VALID-POST-FILE-SW
-           MOVE 'Y' TO VALID-CUSTOMER-SW
-           MOVE 'Y' TO VALID-ORDER-SW
-           MOVE 'Y' TO VALID-ARTIKEL-SW
-           MOVE 'Y' TO VALID-ARTIKEL-SUMMA-SW
-           MOVE 'Y' TO VALID-POSTER-COUNTS-SW
 
            EVALUATE INDATA-TYP
                WHEN '10' PERFORM 110-START-POST
-               WHEN '20' PERFORM 120-ORDER-POST
-               WHEN '30' PERFORM 130-ARTIKEL-POST
+               WHEN '20' ADD 1 TO POSTER-COUNT
+               WHEN '30' ADD 1 TO POSTER-COUNT
                WHEN '90' PERFORM 190-SLUT-POST
                WHEN OTHER MOVE 'N' TO VALID-POST-FILE-SW
            END-EVALUATE
 
            IF NOT VALID-POST-FILE
                SET EOF TO TRUE
-               DISPLAY ' Post-filen är ogiltig'
-           ELSE IF NOT (START-POST-EXIST OR END-POST-EXIST)
-               SET EOF TO TRUE
-               DISPLAY ' Inläsningen avbryts på grund av filen har '
-               ' inte START-POST eller SLUT-POST poster'
-           END-IF
+               DISPLAY ' Post-filen är ogiltig'.
 
            IF NOT VALID-POSTER-COUNTS
+               PERFORM WRITE-BAD-FILE.
+
+           READ INDATA AT END
+               SET EOF TO TRUE
+               IF NOT START-POST-EXIST OR NOT END-POST-EXIST
+                   MOVE 'N' TO VALID-POST-FILE-SW
+                   DISPLAY ' Inläsningen avbryts på grund av filen har'
+      -                    ' inte START-POST eller SLUT-POST poster'
+               END-IF
+           END-READ.
+      **********************************************************
+
+       101-READ-CUST-FILE.
+
+           MOVE 'Y' TO VALID-ARTIKEL-NR-SW
+
+           EVALUATE INDATA-TYP
+               WHEN '10' CONTINUE
+               WHEN '20' PERFORM 120-ORDER-POST
+               WHEN '30' PERFORM 130-ARTIKEL-POST
+               WHEN '90' CONTINUE
+           END-EVALUATE
+
+           IF NOT VALID-ARTIKEL-NR
+               DISPLAY ' ARTIKEL-POST är ogiltig'
                PERFORM WRITE-BAD-FILE
            END-IF
 
-           READ INDATA AT END SET EOF TO TRUE
-       .
+           READ INDATA AT END SET EOF TO TRUE.
       **********************************************************
 
        110-START-POST.
@@ -194,8 +220,7 @@
                END-IF
            ELSE
                MOVE 'N' TO VALID-POST-FILE-SW
-               DISPLAY ' START-POST är dubbel'
-       .
+               DISPLAY ' START-POST är dubbel'.
       *****************************************************
 
        210-CHECK-CUSTOMER-NR.
@@ -209,9 +234,7 @@
 
            IF SQLCODE NOT = ZERO
                MOVE 'N' TO VALID-POST-FILE-SW
-               MOVE 'N' TO VALID-CUSTOMER-SW
-               DISPLAY ' START-POST är ogiltig'
-       .
+               DISPLAY ' START-POST är ogiltig'.
       ****************************
 
        210-CHECK-FILE-NR.
@@ -228,17 +251,13 @@
                ELSE
                    DISPLAY ' Filens löpnummer är ogiltig'
                    MOVE 'N' TO VALID-POST-FILE-SW
-                   MOVE 'N' TO VALID-FILE-NUMBER-SW
                END-IF
            ELSE
                MOVE 'N' TO VALID-POST-FILE-SW
-               MOVE 'N' TO VALID-FILE-NUMBER-SW
-               DISPLAY ' START-POST är ogiltig'
-       .
+               DISPLAY ' START-POST är ogiltig'.
       *****************************
 
        120-ORDER-POST.
-      *    MOVE FUNCTION NUMVAL(INDATA-POST(3:10)) TO OLD-ORDNR
            MOVE INDATA-POST TO ORDER-POST-20
            MOVE ORDDAT-20(1:4) TO INLOG-PROCDATE(1:4)
            MOVE ORDDAT-20(5:2) TO INLOG-PROCDATE(6:2)
@@ -270,9 +289,6 @@
 
            IF SQLCODE NOT = ZERO
                DISPLAY ' Insert SQL sats på INLOG tabel är felt'.
-
-           IF VALID-POST-FILE
-               ADD 1 TO POSTER-COUNT.
       ****************************
 
        130-ARTIKEL-POST.
@@ -295,13 +311,7 @@
                 PERFORM 230-ORDER-UPDATE
                END-IF
            ELSE
-               MOVE 'N' TO VALID-POST-FILE-SW
-               DISPLAY ' ARTIKEL-POST är ogiltig'
-           END-IF
-
-           IF VALID-POST-FILE
-               ADD 1 TO POSTER-COUNT
-       .
+               MOVE 'N' TO VALID-ARTIKEL-NR-SW.
       ***************************
 
        230-ORDER-UPDATE.
@@ -316,7 +326,6 @@
                DISPLAY ' Update Order status in INLOG table är felt'.
       ***************************
 
-
        190-SLUT-POST.
            IF NOT END-POST-EXIST
                MOVE INDATA-POST TO SLUT-POST-90
@@ -325,16 +334,15 @@
 
                IF FUNCTION NUMVAL(ANTAL-90) NOT = POSTER-COUNT
                    MOVE 'N' TO VALID-POSTER-COUNTS-SW
+                   MOVE 'N' TO VALID-POST-FILE-SW
                END-IF
            ELSE
                MOVE 'N' TO VALID-POST-FILE-SW
-               DISPLAY ' SLUTT-POST är dubbel'
-       .
+               DISPLAY ' SLUTT-POST är dubbel'.
       ****************************
 
        WRITE-BAD-FILE.
            MOVE INDATA-POST TO FELDATA-POST
            WRITE FELDATA-POST
-           DISPLAY ' *** See Bad transactions file !!! '
-       .
+           DISPLAY ' *** See Bad transactions file !!! '.
 
