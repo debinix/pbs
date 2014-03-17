@@ -60,7 +60,7 @@
                88  FELFIL-SUCCESSFUL       VALUE '00'.
 
        01  COUNTS-FIELDS.
-           05  POSTER-COUNT    PIC 9(6) VALUE ZERO.
+           05  POSTER-COUNT    PIC 9(6)    VALUE ZERO.
 
        01  START-POST-10.
            05  POSTTYP-10      PIC X(2).
@@ -88,7 +88,7 @@
            05  GELONR-20       PIC X(10).
            05  FILLER          PIC X(67).
 
-       01  OLD-ORDNR           PIC 9(9) VALUE ZERO.
+      *01  OLD-ORDNR           PIC 9(9)    VALUE ZERO.
 
        01  ARTIKEL-POST-30.
            05  POSTTYP-30      PIC X(2).
@@ -97,6 +97,8 @@
            05  ARTPRS-30       PIC X(6).
            05  SUMMA-30        PIC X(9).
            05  FILLER          PIC X(269).
+
+       01  ART-SUM             PIC 9(9)    VALUE ZERO.
 
        01  SLUT-POST-90.
            05  POSTTYP-90      PIC X(2).
@@ -163,10 +165,10 @@
            IF NOT VALID-POST-FILE
                SET EOF TO TRUE
                DISPLAY ' Post-filen är ogiltig'
-      *    ELSE IF NOT (START-POST-EXIST OR END-POST-EXIST)
-      *        SET EOF TO TRUE
-      *        DISPLAY ' Inläsningen avbryts på grund av filen har '
-      *        ' inte START-POST eller SLUT-POST poster'
+           ELSE IF NOT (START-POST-EXIST OR END-POST-EXIST)
+               SET EOF TO TRUE
+               DISPLAY ' Inläsningen avbryts på grund av filen har '
+               ' inte START-POST eller SLUT-POST poster'
            END-IF
 
            IF NOT VALID-POSTER-COUNTS
@@ -236,22 +238,84 @@
       *****************************
 
        120-ORDER-POST.
-           MOVE FUNCTION NUMVAL(INDATA-POST(3:10)) TO OLD-ORDNR
+      *    MOVE FUNCTION NUMVAL(INDATA-POST(3:10)) TO OLD-ORDNR
            MOVE INDATA-POST TO ORDER-POST-20
+           MOVE ORDDAT-20(1:4) TO INLOG-PROCDATE(1:4)
+           MOVE ORDDAT-20(5:2) TO INLOG-PROCDATE(6:2)
+           MOVE ORDDAT-20(7:2) TO INLOG-PROCDATE(9:2)
+           MOVE '-'    TO INLOG-PROCDATE(5:1) INLOG-PROCDATE(8:1)
+           MOVE FUNCTION NUMVAL(ORDNR1-20) TO INLOG-ORDNO
+
+           MOVE 1 TO INLOG-RESULTCODE
+
+           EXEC SQL
+                   SELECT MAX(INLOG_ID)
+                   INTO :INLOG-INLOG-ID
+                   FROM INLOG
+           END-EXEC
+           IF SQLCODE NOT = ZERO
+               DISPLAY ' MAX(INLOG_ID) på INLOG tabel är felt'.
+
+
+           EXEC SQL
+               INSERT INTO INLOG
+               VALUES ( (:INLOG-INLOG-ID+1),
+                         :CUSTOMER-CUST-ID,
+                         :INLOG-FILENO,
+                         :INLOG-PROCDATE,
+                         :INLOG-ORDNO,
+                         :INLOG-RESULTCODE
+                         )
+           END-EXEC
+
+           IF SQLCODE NOT = ZERO
+               DISPLAY ' Insert SQL sats på INLOG tabel är felt'.
 
            IF VALID-POST-FILE
-               ADD 1 TO POSTER-COUNT
-       .
+               ADD 1 TO POSTER-COUNT.
       ****************************
 
        130-ARTIKEL-POST.
-           MOVE INDATA-POST TO ARTIKEL-POST-30
+           MOVE INDATA-POST    TO ARTIKEL-POST-30
+           MOVE ZERO   TO ART-SUM
+      **** Check Artikel NR
+           MOVE ARTNR-30 TO ITEM-ARTNO
+               EXEC SQL
+                   SELECT ITEM_ID
+                   INTO :ITEM-ITEM-ID
+                   FROM ITEM
+                   WHERE ARTNO = :ITEM-ARTNO
+               END-EXEC.
 
+           IF SQLCODE  = ZERO
+               COMPUTE ART-SUM =
+               FUNCTION NUMVAL(ARTANT-30) * FUNCTION NUMVAL(ARTPRS-30)
+               IF ART-SUM NOT = FUNCTION NUMVAL(SUMMA-30)
+                DISPLAY 'Artikel summa är felt. Artikel NR: ' ITEM-ARTNO
+                PERFORM 230-ORDER-UPDATE
+               END-IF
+           ELSE
+               MOVE 'N' TO VALID-POST-FILE-SW
+               DISPLAY ' ARTIKEL-POST är ogiltig'
+           END-IF
 
            IF VALID-POST-FILE
                ADD 1 TO POSTER-COUNT
        .
       ***************************
+
+       230-ORDER-UPDATE.
+      *** Update Order status in INLOG table
+           EXEC SQL
+               UPDATE INLOG
+                SET RESULTCODE = 2
+                WHERE INLOG_ID = :INLOG-INLOG-ID+1
+           END-EXEC.
+
+           IF SQLCODE NOT = ZERO
+               DISPLAY ' Update Order status in INLOG table är felt'.
+      ***************************
+
 
        190-SLUT-POST.
            IF NOT END-POST-EXIST

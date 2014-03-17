@@ -1,4 +1,4 @@
--- ---------------------------------------------------------------------- 
+- ---------------------------------------------------------------------- 
 -- Tables for PBS application
 -- ---------------------------------------------------------------------- 
 -- Run drop_tbls.sql before running this file
@@ -45,7 +45,7 @@ CREATE UNIQUE INDEX idx_fin
 CREATE TABLE ITEM (
     ITEM_ID INTEGER NOT NULL,
     DESCRIPTION VARCHAR(254) NOT NULL,
-    ARTNO VARCHAR(254),
+    ARTNO CHAR(10) NOT NULL,
     UNITDESC VARCHAR(254),
     QTY DECIMAL(7,2) NOT NULL,
     PRICE DECIMAL(9,2) NOT NULL,

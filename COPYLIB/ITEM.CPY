@@ -5,7 +5,8 @@
                                              NOT NULL,
               DESCRIPTION                    VARCHAR (254)
                                              NOT NULL,
-              ARTNO                          VARCHAR (254),
+              ARTNO                          CHAR(10)
+                                             NOT NULL,
               UNITDESC                       VARCHAR (254),
               QTY                            DECIMAL (7, 2)
                                              NOT NULL,
@@ -20,9 +21,7 @@
            03 ITEM-DESCRIPTION.
               49 ITEM-DESCRIPTION-LEN        PIC S9(4) COMP.
               49 ITEM-DESCRIPTION-TEXT       PIC X(254).
-           03 ITEM-ARTNO.
-              49 ITEM-ARTNO-LEN              PIC S9(4) COMP.
-              49 ITEM-ARTNO-TEXT             PIC X(254).
+           03 ITEM-ARTNO                     PIC X(10).
            03 ITEM-UNITDESC.
               49 ITEM-UNITDESC-LEN           PIC S9(4) COMP.
               49 ITEM-UNITDESC-TEXT          PIC X(254).
