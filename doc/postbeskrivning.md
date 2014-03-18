@@ -28,14 +28,14 @@ Startpost används för att unikt identifiera användaren och säkerställa att 
 |29-33   |5           |X     |FILNR-10    |Filens löpnummer. Numeriskt utfyllt med nollor. Dvs. 00001 etc.                                                 |
 |34-300  |266         |Blankt|FILLER      |Reserv, blank                                                                                                   |
 
-#### Order (20)
+#### Faktura (20)
 
-Posten innehåller information om ordern.
+Posten innehåller information om fakturan.
 
 |Position|Antal tecken|Format|Fält       |Beskrivning                                    |
 |--------|------------|------|-----------|-----------------------------------------------|
 |1-2     |2           |X     |POSTTYP-20 |Order = "20"                                   |
-|3-12    |10          |9     |ORDNR1-20  |Kundens ordernummer i numerisk form            |
+|3-12    |10          |9     |FKTNR1-20  |Kundens fakturanummer i numerisk form          |
 |13-24   |10          |X     |GELNR2-20  |Gäldenärens kundnummer i alfanumeriskt format  |
 |25-32   |8           |9     |ORDDAT-20  |Orderdatum i formen ÅÅÅÅMMDD                   |
 |33-34   |2           |X     |ORDRAB-20  |Ev. rabatt i formen XX. Kan vara blank         |
@@ -53,7 +53,7 @@ Posten innehåller information om ordern.
 
 #### Artikel (30)
 
-Posten innehåller information om artiklarna i en order.
+Posten innehåller information om artiklarna i en faktura.
 
 |Position|Antal tecken|Format|Fält       |Beskrivning                                                               |
 |--------|------------|------|-----------|--------------------------------------------------------------------------|
