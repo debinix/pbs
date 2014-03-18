@@ -1,4 +1,4 @@
-       *>*******************************************************
+      **********************************************************
        IDENTIFICATION DIVISION.
        PROGRAM-ID. pbs.
       *
@@ -45,7 +45,7 @@
                DECLARE BCURS1 CURSOR FOR
                SELECT C.CUST_ID, C.ORGNO, C.NAME
                FROM TUTORIAL.CUSTOMER C
-               WHERE C.CUSTNO > 999
+               WHERE C.CUSTNO NOT LIKE 'PBS%'
                ORDER BY C.CUST_ID
            END-EXEC
 
