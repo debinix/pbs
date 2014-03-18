@@ -82,7 +82,7 @@ CREATE UNIQUE INDEX idx_debtor
 
 CREATE TABLE CUSTOMER (
     CUST_ID INTEGER NOT NULL,
-    CUSTNO INTEGER NOT NULL,
+    CUSTNO CHAR(10) NOT NULL,
     NAME VARCHAR(254) NOT NULL,
     BOARDPLACE VARCHAR(254) NOT NULL,
     OURCONTACT VARCHAR(254) NOT NULL,
@@ -108,7 +108,8 @@ CREATE UNIQUE INDEX idx_customer
 
 
 -- ---------------------------------------------------------------------- 
--- Add table "INLOG"                                                    
+-- Add table "INLOG"  
+-- RESULTCODE: 0 is success, > 0 some error                                                   
 -- ---------------------------------------------------------------------- 
 
 CREATE TABLE INLOG (
@@ -116,8 +117,7 @@ CREATE TABLE INLOG (
     CUST_ID INTEGER NOT NULL,
     FILENO INTEGER NOT NULL,
     PROCDATE DATE NOT NULL,
-/* what was the reason for ORDNO  */
-    ORDNO INTEGER,
+    INVNO CHAR(16) NOT NULL,
     RESULTCODE SMALLINT NOT NULL,
     /* keys */
     PRIMARY KEY (INLOG_ID),
@@ -163,8 +163,8 @@ CREATE TABLE INVOICE (
     CUST_ID INTEGER NOT NULL,
     DEBT_ID INTEGER NOT NULL,
     INVSTATE SMALLINT NOT NULL,  
-    INVNO VARCHAR (254) NOT NULL,  
-    CUSTNO VARCHAR (254) NOT NULL,
+    INVNO CHAR (16) NOT NULL,  
+    CUSTNO CHAR (10) NOT NULL,
     INVDATE DATE,
     VAT DECIMAL(3,2) NOT NULL,
     /* keys */
