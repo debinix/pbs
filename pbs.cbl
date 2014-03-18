@@ -38,6 +38,8 @@
 
            EXEC SQL INCLUDE FINDATA END-EXEC.
 
+           EXEC SQL INCLUDE INERROR END-EXEC.
+
       *    declared cursors
 
       *    list PBS Ekonomi customers

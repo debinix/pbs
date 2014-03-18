@@ -128,7 +128,9 @@ INSERT INTO CUSTOMER
 VALUES (3,'K987654321','Mina Möbler', 'Stockholm','Träputte Bordsson', NULL, '08-580 12345','putte@tra-example.com','www.mm-example.com','654321-1111','Y',3,3,0.10,21);
 
 
-
+-- 
+-- INLOG
+--
 
 DELETE FROM INLOG;
 
@@ -144,6 +146,20 @@ INSERT INTO INLOG
 (INLOG_ID,CUST_ID,FILENO,PROCDATE,INVNO,RESULTCODE)
 VALUES(3,3, 3,'2014-03-15','56427',0);
 
+
+--
+-- INERROR
+--
+
+DELETE FROM INERROR;
+
+INSERT INTO INERROR
+(INERR_ID,DESCRIPTION,INLOG_ID)
+VALUES(1,'Felaktig artikelsumma för ArtXX',1);
+
+INSERT INTO INERROR
+(INERR_ID,DESCRIPTION,INLOG_ID)
+VALUES(2,'Felaktig totalsumma',1);
 
 
 --

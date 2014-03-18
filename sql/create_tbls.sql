@@ -131,6 +131,25 @@ CREATE TABLE INLOG (
 CREATE UNIQUE INDEX idx_errdata
 	ON INLOG(INLOG_ID);
 
+
+-- ---------------------------------------------------------------------- 
+-- Add table "INERROR"                                                 
+-- ---------------------------------------------------------------------- 
+
+CREATE TABLE INERROR (
+    INERR_ID INTEGER NOT NULL,
+    DESCRIPTION VARCHAR(254),
+    INLOG_ID INTEGER NOT NULL,
+    /* keys */
+    PRIMARY KEY (INERR_ID),
+    /* foreign keys */
+    FOREIGN KEY(INLOG_ID)
+	REFERENCES INLOG(INLOG_ID)
+);
+
+CREATE UNIQUE INDEX idx_inerror
+	ON INERROR(INERR_ID);
+
 -- ---------------------------------------------------------------------- 
 -- Add table "SRV"                                                    
 -- ---------------------------------------------------------------------- 
