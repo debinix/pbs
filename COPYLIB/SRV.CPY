@@ -9,10 +9,6 @@
               CHARGE                         DECIMAL (5, 2)
                                              NOT NULL,
               CUST_ID                        INT
-                                             NOT NULL,
-              DELRATE                        DECIMAL (3, 2)
-                                             NOT NULL,
-              DUEDAYS                        SMALLINT
                                              NOT NULL
            )
            END-EXEC.
@@ -28,5 +24,3 @@
               49 SRV-DESCRIPTION-TEXT        PIC X(254).
            03 SRV-CHARGE                     PIC S9(3)V9(2) COMP-3.
            03 SRV-CUST-ID                    PIC S9(9) COMP.
-           03 SRV-DELRATE                    PIC S9(1)V9(2) COMP-3.
-           03 SRV-DUEDAYS                    PIC S9(4) COMP.

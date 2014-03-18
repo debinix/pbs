@@ -9,7 +9,8 @@
                                              NOT NULL,
               PROCDATE                       DATE
                                              NOT NULL,
-              ORDNO                          INT,
+              INVNO                          CHAR (16)
+                                             NOT NULL,
               RESULTCODE                     SMALLINT
                                              NOT NULL
            )
@@ -21,5 +22,5 @@
            03 INLOG-CUST-ID                  PIC S9(9) COMP.
            03 INLOG-FILENO                   PIC S9(9) COMP.
            03 INLOG-PROCDATE                 PIC X(10).
-           03 INLOG-ORDNO                    PIC S9(9) COMP.
+           03 INLOG-INVNO                    PIC X(16).
            03 INLOG-RESULTCODE               PIC S9(4) COMP.
