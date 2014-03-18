@@ -1,4 +1,4 @@
-## Postformat (Swedish version)
+﻿## Postformat (Swedish version)
 
 En transaktionsfil består av ett antal efter varandra följande poster uppbyggda på samma sätt. Varje post inleds med ett fält som anger vilken typ av post det är frågan om. Efter posttypen följer ett antal fält bestående av ett bestämt antal tecken och med ett fast fältformat. Respektive posttyp beskrivs nedan.
 Varje post består av 300 tecken.
@@ -23,10 +23,10 @@ Startpost används för att unikt identifiera användaren och säkerställa att 
 |--------|------------|------|------------|----------------------------------------------------------------------------------------------------------------|
 |1-2     |2           |X     |POSTTYP-10  |Startpost = "10"                                                                                                |
 |3-10    |8           |X     |SYSTEM-10   |Namn på levererande system = "ORDER IN". Används internt på PBS för att skilja ut och ingående orderinformation |
-|11-18   |9           |X     |KNDNR-10    |Kundnummer i (alfa)numeriskt format                                                                             |
-|19-26   |8           |X     |FILDAT-10   |Framställningsdatum i formen ÅÅÅÅMMDD                                                                           |
-|27-32   |5           |X     |FILNR-10    |Filens löpnummer. Numeriskt utfyllt med nollor. Dvs. 00001 etc.                                                 |
-|33-300  |267         |Blankt|FILLER      |Reserv, blank                                                                                                   |
+|11-20   |10          |X     |KNDNR-10    |Kundnummer i (alfa)numeriskt format                                                                             |
+|21-28   |8           |X     |FILDAT-10   |Framställningsdatum i formen ÅÅÅÅMMDD                                                                           |
+|29-33   |5           |X     |FILNR-10    |Filens löpnummer. Numeriskt utfyllt med nollor. Dvs. 00001 etc.                                                 |
+|34-300  |266         |Blankt|FILLER      |Reserv, blank                                                                                                   |
 
 #### Order (20)
 
