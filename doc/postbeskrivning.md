@@ -32,24 +32,24 @@ Startpost används för att unikt identifiera användaren och säkerställa att 
 
 Posten innehåller information om fakturan.
 
-|Position|Antal tecken|Format|Fält       |Beskrivning                                    |
-|--------|------------|------|-----------|-----------------------------------------------|
-|1-2     |2           |X     |POSTTYP-20 |Order = "20"                                   |
-|3-12    |10          |9     |FKTNR1-20  |Kundens fakturanummer i numerisk form          |
-|13-24   |10          |X     |GELNR2-20  |Gäldenärens kundnummer i alfanumeriskt format  |
-|25-32   |8           |9     |ORDDAT-20  |Orderdatum i formen ÅÅÅÅMMDD                   |
-|33-34   |2           |X     |ORDRAB-20  |Ev. rabatt i formen XX. Kan vara blank         |
-|35-36   |2           |9     |MOMS-20    |Momssats i numeriskt format                    |
-|37-44   |8           |9     |ORDSUM-20  |Total summa för ordern                         |
-|45-60   |16          |X     |FAKTNR-20  |Kundens fakturanummer                          |
-|61-100  |40          |X     |GELNMN-20  |Gäldenärens namn                               |
-|101-130 |30          |X     |GELADD1-20 |Gäldenärens adress 1                           |
-|131-160 |30          |X     |GELADD2-20 |Gäldenärens adress 2                           |  
-|161-190 |30          |X     |GELADD3-20 |Gäldenärens adress 3                           | 
-|191-195 |5           |X     |GELPNR-20  |Gäldenärens postnummer                         |
-|196-225 |30          |X     |GELPOR-20  |Gäldenärens postort                            |
-|226-235 |10          |9     |GELONR     |Gäldenärens organisationsnummer                |
-|236-300 |65          |X     |FILLER     |Reserv, blank                                  |
+|Position|Antal tecken|Format|Fält       |Beskrivning                                      |
+|--------|------------|------|-----------|-------------------------------------------------|
+|1-2     |2           |X     |POSTTYP-20 |Order = "20"                                     |
+|3-12    |10          |9     |ORDNR1-20  |Kundens ordernummer i numerisk form  (ej använt) |
+|13-24   |10          |X     |GELNR2-20  |Gäldenärens kundnummer i alfanumeriskt format    |
+|25-32   |8           |9     |ORDDAT-20  |Fakturadatum i formen ÅÅÅÅMMDD                   |
+|33-34   |2           |X     |ORDRAB-20  |Ev. rabatt i formen XX. Kan vara blank           |
+|35-36   |2           |9     |MOMS-20    |Momssats i numeriskt format                      |
+|37-44   |8           |9     |FAKTSUM-20 |Total summa för fakturan                         |
+|45-60   |16          |X     |FAKTNR-20  |Kundens fakturanummer                            |
+|61-100  |40          |X     |GELNMN-20  |Gäldenärens namn                                 |
+|101-130 |30          |X     |GELADD1-20 |Gäldenärens adress 1                             |
+|131-160 |30          |X     |GELADD2-20 |Gäldenärens adress 2                             |  
+|161-190 |30          |X     |GELADD3-20 |Gäldenärens adress 3                             | 
+|191-195 |5           |X     |GELPNR-20  |Gäldenärens postnummer                           |
+|196-225 |30          |X     |GELPOR-20  |Gäldenärens postort                              |
+|226-235 |10          |9     |GELONR     |Gäldenärens organisationsnummer                  |
+|236-300 |65          |X     |FILLER     |Reserv, blank                                    |
 
 #### Artikel (30)
 
@@ -57,7 +57,7 @@ Posten innehåller information om artiklarna i en faktura.
 
 |Position|Antal tecken|Format|Fält       |Beskrivning                                                               |
 |--------|------------|------|-----------|--------------------------------------------------------------------------|
-|1-2     |2           |X     |POSTTYP-30 |Order = "30"                                                              |
+|1-2     |2           |X     |POSTTYP-30 |Faktura = "30"                                                              |
 |3-12    |10          |9     |ARTNR-30   |Artikelnummer i numerisk form                                             |
 |13-16   |4           |9     |ARTANT-30  |Antal artiklar i numeriskt format                                         |
 |17-22   |6           |9     |ARTPRS-30  |Artikel pris i numeriskt format                                           |
