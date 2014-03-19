@@ -14,7 +14,7 @@ Fields read from top to bottom on the invoice page.
 |Fakturanummer      |INVOICE/invno          |                              |
 |Kundnummer         |INVOICE/custno         |                              |
 |Fakturadatum       |INVOICE/invdate        |                              |
-|Förfallodatum      |SRV/duedays            |Add to invoice date           |
+|Förfallodatum      |CUSTOMER/duedays       |Add to invoice date           |
 |Vår referens       |CUSTOMER/ourcontact    |                              |
 |Telefon            |CUSTOMER/tel           |                              |
 |Kundens namn       |DEBTOR/name            |Company name                  |

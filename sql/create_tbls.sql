@@ -12,9 +12,9 @@
 
 CREATE TABLE ADDR (
     ADDR_ID INTEGER NOT NULL,
-    STREET VARCHAR(254) NOT NULL,
+    STREET CHAR(30) NOT NULL,
     POSTNO CHAR(5) NOT NULL,
-    PLACE VARCHAR(254) NOT NULL,
+    PLACE CHAR(30) NOT NULL,
     /* keys */
     PRIMARY KEY (ADDR_ID)
 );
@@ -28,7 +28,7 @@ CREATE UNIQUE INDEX idx_addr
 
 CREATE TABLE FINDATA (
     FIN_ID INTEGER NOT NULL,
-    VATREGNO VARCHAR(254) NOT NULL,
+    VATREGNO CHAR(14) NOT NULL,
     BANKGIRO CHAR(9) NOT NULL,
     POSTGIRO CHAR(8) NOT NULL,
     /* keys */
@@ -44,9 +44,9 @@ CREATE UNIQUE INDEX idx_fin
 
 CREATE TABLE ITEM (
     ITEM_ID INTEGER NOT NULL,
-    DESCRIPTION VARCHAR(254) NOT NULL,
+    DESCRIPTION CHAR(30) NOT NULL,
     ARTNO CHAR(10) NOT NULL,
-    UNITDESC VARCHAR(254),
+    UNITDESC CHAR(10),
     QTY DECIMAL(7,2) NOT NULL,
     PRICE DECIMAL(9,2) NOT NULL,
     /* keys */
@@ -62,9 +62,9 @@ CREATE UNIQUE INDEX idx_item
 
 CREATE TABLE DEBTOR (
     DEBT_ID INTEGER NOT NULL,
-    NAME VARCHAR(254) NOT NULL,
-    CONTACT VARCHAR(254) NOT NULL,
-    NOTE VARCHAR(254),
+    NAME CHAR(40) NOT NULL,
+    CONTACT CHAR(40) NOT NULL,
+    NOTE CHAR(60),
     ADDR_ID INTEGER NOT NULL,
     /* keys */
     PRIMARY KEY (DEBT_ID),
@@ -82,18 +82,20 @@ CREATE UNIQUE INDEX idx_debtor
 
 CREATE TABLE CUSTOMER (
     CUST_ID INTEGER NOT NULL,
-    CUSTNO INTEGER NOT NULL,
-    NAME VARCHAR(254) NOT NULL,
-    BOARDPLACE VARCHAR(254) NOT NULL,
-    OURCONTACT VARCHAR(254) NOT NULL,
-    OURNOTE VARCHAR(254),
-    TEL VARCHAR(254) NOT NULL,
-    EMAIL VARCHAR(254) NOT NULL,
-    WEB VARCHAR(254),
+    CUSTNO CHAR(10) NOT NULL,
+    NAME CHAR(40) NOT NULL,
+    BOARDPLACE CHAR(30) NOT NULL,
+    OURCONTACT CHAR(40) NOT NULL,
+    OURNOTE CHAR(60),
+    TEL CHAR(20) NOT NULL,
+    EMAIL CHAR(40) NOT NULL,
+    WEB CHAR(40),
     ORGNO CHAR(11) NOT NULL,
     ACTIVE CHAR(1) NOT NULL,
     ADDR_ID INTEGER NOT NULL,
     FIN_ID INTEGER NOT NULL,
+    DELRATE DECIMAL(3,2) NOT NULL,
+    DUEDAYS SMALLINT NOT NULL,
     /* keys */
     PRIMARY KEY (CUST_ID),
     /* foreign keys */
@@ -108,7 +110,8 @@ CREATE UNIQUE INDEX idx_customer
 
 
 -- ---------------------------------------------------------------------- 
--- Add table "INLOG"                                                    
+-- Add table "INLOG"  
+-- RESULTCODE: 0 is success, > 0 some error                                                   
 -- ---------------------------------------------------------------------- 
 
 CREATE TABLE INLOG (
@@ -116,8 +119,7 @@ CREATE TABLE INLOG (
     CUST_ID INTEGER NOT NULL,
     FILENO INTEGER NOT NULL,
     PROCDATE DATE NOT NULL,
-/* what was the reason for ORDNO  */
-    ORDNO INTEGER,
+    INVNO CHAR(16) NOT NULL,
     RESULTCODE SMALLINT NOT NULL,
     /* keys */
     PRIMARY KEY (INLOG_ID),
@@ -129,18 +131,35 @@ CREATE TABLE INLOG (
 CREATE UNIQUE INDEX idx_errdata
 	ON INLOG(INLOG_ID);
 
+
+-- ---------------------------------------------------------------------- 
+-- Add table "INERROR"                                                 
+-- ---------------------------------------------------------------------- 
+
+CREATE TABLE INERROR (
+    INERR_ID INTEGER NOT NULL,
+    DESCRIPTION CHAR(60) NOT NULL,
+    INLOG_ID INTEGER NOT NULL,
+    /* keys */
+    PRIMARY KEY (INERR_ID),
+    /* foreign keys */
+    FOREIGN KEY(INLOG_ID)
+	REFERENCES INLOG(INLOG_ID)
+);
+
+CREATE UNIQUE INDEX idx_inerror
+	ON INERROR(INERR_ID);
+
 -- ---------------------------------------------------------------------- 
 -- Add table "SRV"                                                    
 -- ---------------------------------------------------------------------- 
 
 CREATE TABLE SRV (
     SRV_ID INTEGER NOT NULL,
-    ARTNO VARCHAR(254),
-    DESCRIPTION VARCHAR(254) NOT NULL,
+    ARTNO CHAR(10) NOT NULL,
+    DESCRIPTION CHAR(40) NOT NULL,
     CHARGE DECIMAL(5,2) NOT NULL,
     CUST_ID INTEGER NOT NULL,
-    DELRATE DECIMAL(3,2) NOT NULL,
-    DUEDAYS SMALLINT NOT NULL,
     /* keys */
     PRIMARY KEY (SRV_ID),
     /* foreign keys */
@@ -163,8 +182,8 @@ CREATE TABLE INVOICE (
     CUST_ID INTEGER NOT NULL,
     DEBT_ID INTEGER NOT NULL,
     INVSTATE SMALLINT NOT NULL,  
-    INVNO VARCHAR (254) NOT NULL,  
-    CUSTNO VARCHAR (254) NOT NULL,
+    INVNO CHAR (16) NOT NULL,  
+    CUSTNO CHAR (10) NOT NULL,
     INVDATE DATE,
     VAT DECIMAL(3,2) NOT NULL,
     /* keys */

@@ -1,4 +1,4 @@
-       *>*******************************************************
+      **********************************************************
        IDENTIFICATION DIVISION.
        PROGRAM-ID. pbs.
       *
@@ -38,6 +38,8 @@
 
            EXEC SQL INCLUDE FINDATA END-EXEC.
 
+           EXEC SQL INCLUDE INERROR END-EXEC.
+
       *    declared cursors
 
       *    list PBS Ekonomi customers
@@ -45,7 +47,7 @@
                DECLARE BCURS1 CURSOR FOR
                SELECT C.CUST_ID, C.ORGNO, C.NAME
                FROM TUTORIAL.CUSTOMER C
-               WHERE C.CUSTNO > 999
+               WHERE C.CUSTNO NOT LIKE 'PBS%'
                ORDER BY C.CUST_ID
            END-EXEC
 
@@ -412,7 +414,7 @@
                EVALUATE wc-accept
 
                    WHEN '61'
-      *                PERFORM M0120-display-product-list
+                       CALL 'servicemenu' USING wc-accept
                        MOVE SPACE TO wc-accept
                    WHEN '62'
       *                PERFORM M0130-update-product
@@ -421,7 +423,7 @@
       *                PERFORM M0140-add-new-product
                        MOVE SPACE TO wc-accept
                    WHEN '64'
-      *                PERFORM M0150-inactivate-product
+      *                PERFORM M0150-delete-product
                        MOVE SPACE TO wc-accept
                    WHEN '99'
                        SET is-exit-product-menu TO TRUE
@@ -443,7 +445,7 @@
            DISPLAY '(61) Visa tjänsteprodukter'
            DISPLAY '(62) Uppdatera tjänsteprodukt'
            DISPLAY '(63) Lägg till ny tjänsteprodukt'
-           DISPLAY '(64) Inaktivera tjänsteprodukt'
+           DISPLAY '(64) Ta bort tjänsteprodukt'
            DISPLAY SPACE
            DISPLAY '(99) Tillbaka till huvudmenyn'
            DISPLAY HEADLINE
@@ -499,7 +501,6 @@
        Z0100-exit-application.
        
       *    other terminating actions
-
 
 
 
