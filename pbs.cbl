@@ -504,7 +504,6 @@
 
 
 
-
            DISPLAY HEADLINE
            DISPLAY '*** Avslutar Programmet ***'
            DISPLAY SPACE

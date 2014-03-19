@@ -55,26 +55,32 @@
           EVALUATE lc-accept
 
                WHEN '61'
-                   PERFORM M0110-list-services
+                   PERFORM M0110-list-articles
                WHEN '62'
                CONTINUE
-      *            PERFORM M0120-update-service
+      *            PERFORM M0120-update-articles
                WHEN '63'
                CONTINUE
-      *            PERFORM M0130-add-service
+      *            PERFORM M0130-add-article
                WHEN '64'
                CONTINUE
-      *            PERFORM M0140-delete-service
+      *            PERFORM M0140-delete-article
                WHEN OTHER
                    DISPLAY 'Ogiltigt meny val!'
            END-EVALUATE
+
+           DISPLAY SPACE
+           DISPLAY 'Tryck <Enter> för att fortsätta...'
+               WITH NO ADVANCING
+           ACCEPT wc-accept
+
 
            EXIT PROGRAM
            .
 
 
       **********************************************************
-       M0110-list-services.
+       M0110-list-articles.
 
 
            DISPLAY '-------------------'
