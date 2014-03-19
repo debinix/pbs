@@ -31,15 +31,31 @@
                SELECT S.SRV_ID, S.ARTNO,
                       S.DESCRIPTION, S.CHARGE
                FROM TUTORIAL.SRV S
-               ORDER BY S.ARTNO
+               ORDER BY S.SRV_ID
            END-EXEC
 
 
       *    switches
+       01  menu-switches.
+           05 is-exit-update-menu-switch      PIC X(1) VALUE 'N'.
+               88  is-exit-update-menu                 VALUE 'Y'.
+           05 is-existing-id-number-switch    PIC X(1) VALUE 'N'.
+               88  is-existing-id-number               VALUE 'Y'.
+
+
 
       *    Various generic variables
        01  wc-accept                    PIC X(2)    VALUE SPACE.
-       
+       01  we-srv-id                    PIC Z9      VALUE ZERO.
+       01  we-charge                    PIC Z9.99   VALUE ZERO.
+
+      *    Updating table variables
+       01  w9-srv-id                    PIC S9(9)         COMP.
+       01  wc-artno                     PIC X(10)    VALUE SPACE.
+       01  wc-description               PIC X(40)    VALUE SPACE.
+       01  w9-charge                    PIC S9(3)V9(2) COMP-3.
+
+
       *    Various constants
        01  HEADLINE                     PIC X(72)   VALUE ALL '-'.
 
@@ -57,23 +73,16 @@
                WHEN '61'
                    PERFORM M0110-list-articles
                WHEN '62'
-               CONTINUE
-      *            PERFORM M0120-update-articles
+                   PERFORM M0120-update-articles
                WHEN '63'
                CONTINUE
       *            PERFORM M0130-add-article
                WHEN '64'
                CONTINUE
-      *            PERFORM M0140-delete-article
+                   PERFORM M0180-delete-article
                WHEN OTHER
-                   DISPLAY 'Ogiltigt meny val!'
+                   DISPLAY 'Fel menyval från huvudprogram!'
            END-EVALUATE
-
-           DISPLAY SPACE
-           DISPLAY 'Tryck <Enter> för att fortsätta...'
-               WITH NO ADVANCING
-           ACCEPT wc-accept
-
 
            EXIT PROGRAM
            .
@@ -82,10 +91,12 @@
       **********************************************************
        M0110-list-articles.
 
-
-           DISPLAY '-------------------'
-           DISPLAY 'BEFINTLIGA TJÄNSTER'
-           DISPLAY '-------------------'
+           DISPLAY HEADLINE
+           DISPLAY 'SERVICE PRODUKTREGISTER'
+           DISPLAY HEADLINE
+           DISPLAY 'Id|Artikel   |Beskrivning' WITH NO ADVANCING
+           DISPLAY '                             |Pris/faktura (kr)'
+           DISPLAY HEADLINE
 
            EXEC SQL
                OPEN BCURSRV1
@@ -99,15 +110,14 @@
 
            PERFORM UNTIL SQLCODE NOT = ZERO
 
-               DISPLAY SRV-SRV-ID
+               MOVE SRV-SRV-ID TO we-srv-id
+               MOVE SRV-CHARGE TO we-charge
+               DISPLAY we-srv-id
                        '|' SRV-ARTNO
                        '|' SRV-DESCRIPTION
-                       '|' SRV-CHARGE
+                       '|' we-charge
 
-      *        fetch next row (these coloumns are tbl VARCHAR)
-               MOVE SPACE TO SRV-ARTNO
-               MOVE SPACE TO SRV-DESCRIPTION
-
+      *        fetch next row
                EXEC SQL
                FETCH BCURSRV1
                    INTO :SRV-SRV-ID, :SRV-ARTNO,
@@ -126,7 +136,211 @@
                CLOSE BCURSRV1
            END-EXEC
 
+           DISPLAY SPACE
+           DISPLAY 'Tryck <Enter> för att fortsätta...'
+               WITH NO ADVANCING
+           ACCEPT wc-accept
            .
+
+      **********************************************************
+       M0120-update-articles.
+
+           MOVE 'N' TO is-exit-update-menu-switch
+           PERFORM UNTIL is-exit-update-menu
+
+               DISPLAY HEADLINE
+               DISPLAY 'UPPDATERA PRODUKTREGISTER'
+               DISPLAY HEADLINE
+
+               DISPLAY 'A - Artikel nummer'
+               DISPLAY 'B - Beskrivning'
+               DISPLAY 'K - Kostnad per faktura'
+               DISPLAY SPACE
+               DISPLAY 'X - Tillbaka till föregående meny'
+
+               DISPLAY HEADLINE
+               DISPLAY ': ' WITH NO ADVANCING
+               ACCEPT wc-accept
+
+               EVALUATE FUNCTION UPPER-CASE(wc-accept)
+                   WHEN 'A'
+                       PERFORM M0130-update-article-number
+                   WHEN 'B'
+                       PERFORM M0140-update-description
+                   WHEN 'K'
+                       PERFORM M0150-update-charge
+                   WHEN 'X'
+                       SET is-exit-update-menu TO TRUE
+                       CONTINUE
+                   WHEN OTHER
+                       DISPLAY 'Ogiltigt val!'
+               END-EVALUATE
+
+           END-PERFORM
+           .
+      **********************************************************
+       M0130-update-article-number.
+
+           PERFORM M0190-confirm-id-number
+           IF is-existing-id-number
+
+               DISPLAY HEADLINE
+               DISPLAY 'Existerande artikelnummer: ' wc-artno
+               DISPLAY 'Ge artikelnummeret för uppdatering'
+               DISPLAY ': ' WITH NO ADVANCING
+               ACCEPT wc-artno(1:10)
+
+               EXEC SQL
+                   UPDATE TUTORIAL.SRV
+                   SET ARTNO = :wc-artno
+                   WHERE SRV_ID = :w9-srv-id
+               END-EXEC
+
+               IF SQLCODE = ZERO
+                   DISPLAY 'Artikelnumret har uppdaterats!'
+               ELSE
+                   DISPLAY 'Ett problem uppstod vid uppdateringen!'
+                   PERFORM Z0900-error-routine
+               END-IF
+
+           ELSE
+               DISPLAY 'Ogiltigt id nummer - se meny 61'
+           END-IF
+           .
+
+      **********************************************************
+       M0140-update-description.
+
+           PERFORM M0190-confirm-id-number
+           IF is-existing-id-number
+
+               DISPLAY HEADLINE
+               DISPLAY 'Existerande beskrivning: ' wc-description
+               DISPLAY 'Ge en ny beskrivning'
+               DISPLAY ': ' WITH NO ADVANCING
+               ACCEPT wc-description(1:40)
+
+               EXEC SQL
+                   UPDATE TUTORIAL.SRV
+                   SET DESCRIPTION = :wc-description
+                   WHERE SRV_ID = :w9-srv-id
+               END-EXEC
+
+               IF SQLCODE = ZERO
+                   DISPLAY 'Beskrivningen har uppdaterats!'
+               ELSE
+                   DISPLAY 'Ett problem uppstod vid uppdateringen!'
+                   PERFORM Z0900-error-routine
+               END-IF
+
+           ELSE
+               DISPLAY 'Ogiltigt id nummer - se meny 61'
+           END-IF
+           .
+
+
+      **********************************************************
+       M0150-update-charge.
+
+           PERFORM M0190-confirm-id-number
+           IF is-existing-id-number
+
+               MOVE w9-charge TO we-charge
+
+               DISPLAY HEADLINE
+               DISPLAY 'Existerande produktavgift: ' we-charge
+               DISPLAY 'Ge en ny avgift för denna produkt'
+               DISPLAY ': ' WITH NO ADVANCING
+               ACCEPT w9-charge
+
+               EXEC SQL
+                   UPDATE TUTORIAL.SRV
+                   SET CHARGE = :w9-charge
+                   WHERE SRV_ID = :w9-srv-id
+               END-EXEC
+
+               IF SQLCODE = ZERO
+                   DISPLAY 'Produktavgiften har uppdaterats!'
+               ELSE
+                   DISPLAY 'Ett problem uppstod vid uppdateringen!'
+                   PERFORM Z0900-error-routine
+               END-IF
+
+           ELSE
+               DISPLAY 'Ogiltigt id nummer - se meny 61'
+           END-IF
+           .
+
+
+      **********************************************************
+       M0180-delete-article.
+
+           PERFORM M0190-confirm-id-number
+           IF is-existing-id-number
+
+
+               DISPLAY HEADLINE
+               DISPLAY 'Följande produkt kommer att tas bort:'
+               DISPLAY 'Artikel nummer: ' wc-artno
+               DISPLAY 'Beskrivning: ' wc-description
+               DISPLAY 'Är du säker på att du vill ta bort [y/N]?'
+               DISPLAY ': ' WITH NO ADVANCING
+
+               ACCEPT wc-accept
+               IF FUNCTION UPPER-CASE(wc-accept) = 'Y'
+
+                   EXEC SQL
+                       DELETE FROM TUTORIAL.SRV
+                       WHERE SRV_ID = :w9-srv-id
+                   END-EXEC
+
+                   IF SQLCODE = ZERO
+                       DISPLAY HEADLINE
+                       DISPLAY 'Produkten har tagits bort!'
+                   ELSE
+                       DISPLAY 'Ett problem uppstod vid borttagningen'
+                       PERFORM Z0900-error-routine
+                   END-IF
+
+               ELSE
+                   DISPLAY HEADLINE
+                   DISPLAY 'Bortagning avbröts av användaren'
+               END-IF
+
+           ELSE
+               DISPLAY 'Ogiltigt id nummer - se meny 61'
+           END-IF
+           .
+
+
+      **********************************************************
+       M0190-confirm-id-number.
+
+           MOVE 'N' TO is-existing-id-number-switch
+
+           DISPLAY HEADLINE
+           DISPLAY 'Ge aktuellt id-nummer för uppdatering'
+           DISPLAY ': ' WITH NO ADVANCING
+           ACCEPT w9-srv-id
+
+           EXEC SQL
+               SELECT S.ARTNO, S.DESCRIPTION, S.CHARGE
+                   INTO :wc-artno, :wc-description, :w9-charge
+                   FROM TUTORIAL.SRV S
+                   WHERE S.SRV_ID = :w9-srv-id
+           END-EXEC
+
+           IF SQLSTATE = "00000"
+                SET is-existing-id-number TO TRUE
+           ELSE
+               IF SQLSTATE NOT = "02000"
+                   PERFORM Z0900-error-routine
+               END-IF
+           END-IF
+
+           .
+
+
 
       **********************************************************
        Z0900-error-routine.

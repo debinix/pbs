@@ -379,11 +379,9 @@
 
                DISPLAY CUSTOMER-CUST-ID
                        '|' CUSTOMER-ORGNO
-                       '|' CUSTOMER-NAME-TEXT
+                       '|' CUSTOMER-NAME
 
       *        fetch next row
-               MOVE SPACE TO CUSTOMER-NAME-TEXT
-
                EXEC SQL
                FETCH BCURS1
                    INTO :CUSTOMER-CUST-ID, :CUSTOMER-ORGNO,
@@ -417,13 +415,13 @@
                        CALL 'servicemenu' USING wc-accept
                        MOVE SPACE TO wc-accept
                    WHEN '62'
-      *                PERFORM M0130-update-product
+                       CALL 'servicemenu' USING wc-accept
                        MOVE SPACE TO wc-accept
                    WHEN '63'
       *                PERFORM M0140-add-new-product
                        MOVE SPACE TO wc-accept
                    WHEN '64'
-      *                PERFORM M0150-delete-product
+                       CALL 'servicemenu' USING wc-accept
                        MOVE SPACE TO wc-accept
                    WHEN '99'
                        SET is-exit-product-menu TO TRUE
