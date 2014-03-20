@@ -160,6 +160,8 @@ CREATE TABLE SRV (
     DESCRIPTION CHAR(40) NOT NULL,
     CHARGE DECIMAL(5,2) NOT NULL,
     CUST_ID INTEGER NOT NULL,
+    /* unique */
+   UNIQUE (ARTNO),
     /* keys */
     PRIMARY KEY (SRV_ID),
     /* foreign keys */
@@ -167,8 +169,11 @@ CREATE TABLE SRV (
 	REFERENCES CUSTOMER(CUST_ID)
 );
 
-CREATE UNIQUE INDEX idx_SRV
+CREATE UNIQUE INDEX idx_srv
 	ON SRV(SRV_ID);
+
+CREATE UNIQUE INDEX idx_srvartno
+	ON SRV(ARTNO);
 
 
 -- ---------------------------------------------------------------------- 
