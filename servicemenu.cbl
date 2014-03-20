@@ -22,10 +22,11 @@
 
            EXEC SQL INCLUDE SRV END-EXEC.
 
+           EXEC SQL INCLUDE CUSTOMER END-EXEC.
 
       *    cursors
 
-      *    list 'PBS Ekonomi' services
+      *    list produkter
            EXEC SQL
                DECLARE BCURSRV1 CURSOR FOR
                SELECT S.SRV_ID, S.ARTNO,
@@ -34,6 +35,23 @@
                ORDER BY S.SRV_ID
            END-EXEC
 
+      *    get highest primary key
+           EXEC SQL
+               DECLARE BCURSRV2 CURSOR FOR
+               SELECT SRV_ID
+               FROM TUTORIAL.SRV
+               ORDER BY SRV_ID DESC
+           END-EXEC
+
+      *    list customers ids
+           EXEC SQL
+               DECLARE BCURSRV3 CURSOR FOR
+               SELECT C.CUST_ID, C.NAME
+               FROM TUTORIAL.CUSTOMER C
+               WHERE C.CUSTNO NOT LIKE 'PBS%'
+                              AND ACTIVE = 'Y'
+               ORDER BY C.CUST_ID
+           END-EXEC
 
       *    switches
        01  menu-switches.
@@ -48,6 +66,8 @@
        01  wc-accept                    PIC X(2)    VALUE SPACE.
        01  we-srv-id                    PIC Z9      VALUE ZERO.
        01  we-charge                    PIC Z9.99   VALUE ZERO.
+       01  we-cust-id                   PIC Z9      VALUE ZERO.
+
 
       *    Updating table variables
        01  w9-srv-id                    PIC S9(9)         COMP.
@@ -73,10 +93,9 @@
                WHEN '61'
                    PERFORM M0110-list-articles
                WHEN '62'
-                   PERFORM M0120-update-articles
+                   PERFORM M0120-update-article
                WHEN '63'
-               CONTINUE
-      *            PERFORM M0130-add-article
+                   PERFORM M0160-add-article
                WHEN '64'
                CONTINUE
                    PERFORM M0180-delete-article
@@ -92,7 +111,7 @@
        M0110-list-articles.
 
            DISPLAY HEADLINE
-           DISPLAY 'SERVICE PRODUKTREGISTER'
+           DISPLAY 'PRODUKTREGISTER'
            DISPLAY HEADLINE
            DISPLAY 'Id|Artikel   |Beskrivning' WITH NO ADVANCING
            DISPLAY '                             |Pris/faktura (kr)'
@@ -143,7 +162,7 @@
            .
 
       **********************************************************
-       M0120-update-articles.
+       M0120-update-article.
 
            MOVE 'N' TO is-exit-update-menu-switch
            PERFORM UNTIL is-exit-update-menu
@@ -271,6 +290,109 @@
            END-IF
            .
 
+      **********************************************************
+       M0160-add-article.
+
+           DISPLAY HEADLINE
+           DISPLAY 'Ge ett nytt artikelnummer för denna nya produkt'
+           DISPLAY ': ' WITH NO ADVANCING
+           ACCEPT wc-artno(1:10)
+
+           DISPLAY HEADLINE
+           DISPLAY 'Ge en ny beskrivning'
+           DISPLAY ': ' WITH NO ADVANCING
+           ACCEPT wc-description(1:40)
+
+           DISPLAY HEADLINE
+           DISPLAY 'Ge en ny avgift för denna produkt'
+           DISPLAY ': ' WITH NO ADVANCING
+           ACCEPT w9-charge
+
+      *    TODO not really ok, SRV-CUSTOMER table relations needs fix
+           PERFORM M0170-list-customer-ids
+
+           DISPLAY 'Välj ett kund id att knyta till denna produkt'
+           DISPLAY ': ' WITH NO ADVANCING
+           ACCEPT customer-cust-id
+
+      *    open cursor
+           EXEC SQL
+               OPEN BCURSRV2
+           END-EXEC
+
+      *    fetch first row (which now have the highest id - i.e. pk)
+           EXEC SQL
+               FETCH BCURSRV2
+               INTO :w9-srv-id
+           END-EXEC
+
+           IF SQLCODE NOT = ZERO
+               DISPLAY 'Ett problem uppstod för att hitta nästa rad!'
+               PERFORM Z0900-error-routine
+           ELSE
+      *        add one for new article
+               ADD 1 TO w9-srv-id
+
+      *        add product to table
+               EXEC SQL
+                   INSERT INTO TUTORIAL.SRV
+                   VALUES (:w9-srv-id, :wc-artno,:wc-description,
+                           :w9-charge, :customer-cust-id)
+               END-EXEC
+
+               IF SQLCODE NOT = ZERO
+                   DISPLAY 'Produkten kunde inte läggas till!'
+                   PERFORM Z0900-error-routine
+               ELSE
+                   DISPLAY 'Produkten har lagts till i registret!'
+               END-IF
+
+           END-IF
+
+      *    close cursor
+           EXEC SQL
+               CLOSE BCURSRV2
+           END-EXEC
+
+           .
+      **********************************************************
+       M0170-list-customer-ids.
+
+           EXEC SQL
+               OPEN BCURSRV3
+           END-EXEC
+
+           EXEC SQL
+               FETCH BCURSRV3
+                   INTO :CUSTOMER-CUST-ID,:CUSTOMER-NAME
+           END-EXEC
+
+           DISPLAY 'Id|Kundnamn'
+           DISPLAY HEADLINE
+           PERFORM UNTIL SQLCODE NOT = ZERO
+
+               MOVE CUSTOMER-CUST-ID TO we-cust-id
+               DISPLAY we-cust-id '|' CUSTOMER-NAME
+
+      *        fetch next row
+               EXEC SQL
+               FETCH BCURSRV3
+                   INTO :CUSTOMER-CUST-ID,:CUSTOMER-NAME
+               END-EXEC
+
+           END-PERFORM
+           DISPLAY HEADLINE
+
+      *    end of data
+           IF SQLSTATE NOT = "02000"
+               PERFORM Z0900-error-routine
+           END-IF
+
+      *    close cursor
+           EXEC SQL
+               CLOSE BCURSRV3
+           END-EXEC
+           .
 
       **********************************************************
        M0180-delete-article.
@@ -317,6 +439,8 @@
        M0190-confirm-id-number.
 
            MOVE 'N' TO is-existing-id-number-switch
+
+      *    TODO: display list of SRV ids to chose from
 
            DISPLAY HEADLINE
            DISPLAY 'Ge aktuellt id-nummer för uppdatering'

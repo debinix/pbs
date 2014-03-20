@@ -131,14 +131,14 @@
        B100-diplay-main-menu-list.
        
            DISPLAY HEADLINE
-           DISPLAY '*** PBS HUVUDMENY ***'
+           DISPLAY '*** HUVUDMENY ***'
            DISPLAY HEADLINE
            DISPLAY '(10) Processa inkommande fakturafil'
            DISPLAY '(20) Skriv gäldenärsfakturor'
            DISPLAY '(30) Processtatestik'
            DISPLAY '(40) PBS företagsrapporter'
            DISPLAY '(50) Kundregister'
-           DISPLAY '(60) Tjänster'
+           DISPLAY '(60) Artikelregister'
            DISPLAY '(70) Underhåll'
            DISPLAY SPACE
            DISPLAY '(99) Avsluta programmet'
@@ -395,7 +395,7 @@
                PERFORM Z0900-error-routine
            END-IF
 
-      *    close cursor sum up revenue
+      *    close cursor
            EXEC SQL
                CLOSE BCURS1
            END-EXEC
@@ -418,7 +418,7 @@
                        CALL 'servicemenu' USING wc-accept
                        MOVE SPACE TO wc-accept
                    WHEN '63'
-      *                PERFORM M0140-add-new-product
+                       CALL 'servicemenu' USING wc-accept
                        MOVE SPACE TO wc-accept
                    WHEN '64'
                        CALL 'servicemenu' USING wc-accept
@@ -438,12 +438,12 @@
        M110-diplay-product-menu.
 
            DISPLAY HEADLINE
-           DISPLAY '*** PBS TJÄNSTER ***'
+           DISPLAY '*** ARTIKELREGISTER ***'
            DISPLAY HEADLINE
-           DISPLAY '(61) Visa tjänsteprodukter'
-           DISPLAY '(62) Uppdatera tjänsteprodukt'
-           DISPLAY '(63) Lägg till ny tjänsteprodukt'
-           DISPLAY '(64) Ta bort tjänsteprodukt'
+           DISPLAY '(61) Visa all produkter'
+           DISPLAY '(62) Uppdatera produktdetaljer'
+           DISPLAY '(63) Lägg till ny produkt'
+           DISPLAY '(64) Ta bort produkt'
            DISPLAY SPACE
            DISPLAY '(99) Tillbaka till huvudmenyn'
            DISPLAY HEADLINE
