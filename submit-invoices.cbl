@@ -154,16 +154,14 @@
            move customer-cust-id to wn-current-customer-no
            move customer-addr-id to wn-current-adress-no
 
-       *>  Fetch first customers adress
+       *>  Get first customers adress
            exec sql
-               open cur-adress
-           end-exec
-
-           exec sql
-               fetch cur-adress into
-                   :addr-street,
-                   :addr-postno,
-                   :addr-place
+               select street, postno, place
+                   into :addr-street,
+                        :addr-postno,
+                        :addr-place
+                   from addr
+                   where addr_id = :wn-current-adress-no
            end-exec
 
        *>  Fetch first customers first invoice
@@ -418,6 +416,11 @@
                            :invoice-vat
                    end-exec
 
+                   exec sql
+                       open cur-invoice-items
+                   end-exec
+
+
                    *> get debtor details
                    exec sql
                        select name,
@@ -460,6 +463,11 @@
 
                end-perform *> middle loop
 
+               *> close cursors and re-open
+               exec sql
+                   close cur-invoices
+               end-exec
+
                *> get next customer
                exec sql
                    fetch cur-customers into
@@ -470,20 +478,21 @@
                move customer-cust-id to wn-current-customer-no
                move customer-addr-id to wn-current-adress-no
 
-               *> make sure that the text field of a varchar col is
-               *> cleared
-               move space to addr-street-text
-               move space to addr-place-text
-
                *> get next customers adress
                exec sql
-                   fetch cur-adress into
-                       :addr-street,
-                       :addr-postno,
-                       :addr-place
+                   select street, postno, place
+                       into :addr-street,
+                            :addr-postno,
+                            :addr-place
+                       from addr
+                       where addr_id = :wn-current-adress-no
                end-exec
 
                *> get next customers invoices
+               exec sql
+                   open cur-invoices
+               end-exec
+
                exec sql
                    fetch cur-invoices into
                        :invoice-debt-id,
