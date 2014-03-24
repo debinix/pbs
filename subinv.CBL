@@ -50,7 +50,7 @@
 
        *>-------------------------------------------------------
        *> Counters etc.
-       01 wn-current-customer-no             pic x(10) value space.
+       01 wn-current-customer-no             pic s9(9) comp.
        01 wn-current-adress-no               pic s9(9) comp.
        01 wn-current-invoice-no              pic s9(9) comp.
        01 wn-current-invoice-item-no         pic s9(9) comp.
@@ -61,6 +61,9 @@
        01 wn-intrest-rate                    pic z9    value zero.
        01 wn-even-sum                        pic 9v99  value zero.
 
+       01 wr-ind-variables.
+           05 wn-ind-cust-ournote            pic s9(4) comp.
+           05 wn-ind-cust-web                pic s9(4) comp.
 
        *>-------------------------------------------------------
        *> Filenames
@@ -92,13 +95,15 @@
        *>  for customer invoices
            exec sql
                declare cur-invoices cursor for
-                   select debt_id,
+                   select inv_id,
+                          cust_id,
+                          debt_id,
                           invno,
                           custno,
                           invdate,
                           vat
                        from invoice
-                       where customer_id =
+                       where cust_id =
                                    :wn-current-customer-no
            end-exec.
 
@@ -150,6 +155,14 @@
                open cur-customers
            end-exec
 
+           *> NB! First customer is PBS - jump to next.
+           exec sql
+               fetch cur-customers into
+                   :customer-cust-id,
+                   :customer-custno,
+                   :customer-addr-id
+           end-exec
+
            perform X0100-get-customer-data
 
        *>  Get the debtor adress for the first invoice
@@ -199,9 +212,12 @@
                        close cur-invoice-items
                    end-exec
 
+
                    *> load next invoice
                    exec sql
                        fetch cur-invoices into
+                           :invoice-inv-id,
+                           :invoice-cust-id,
                            :invoice-debt-id,
                            :invoice-invno,
                            :invoice-custno,
@@ -209,30 +225,53 @@
                            :invoice-vat
                    end-exec
 
-                   exec sql
-                       open cur-invoice-items
-                   end-exec
-
-                   *> get debtor details
-                   perform X0200-get-debtor-details
-
                    close output-file
 
-                   *> create new filename and rename output.tex
-                   string customer-custno delimited by ' '
-                       '-' delimited by size
-                       invoice-invno delimited by ' '
-                       '.tex' delimited by size
-                       into new-filename
+                   if not sqlcode = 100 then
+                       move invoice-inv-id to wn-current-invoice-no
 
-                   call "CBL_RENAME_FILE" using  old-filename
-                                                 new-filename
-                                       returning return-code
+                       exec sql
+                           open cur-invoice-items
+                       end-exec
 
-                   if return-code not = 0
-                       move return-code to file-status
+                       exec sql
+                           fetch cur-invoice-items into
+                               :invitem-item-id
+                       end-exec
+
+                       exec sql
+                           select description,
+                               artno,
+                               unitdesc,
+                               qty,
+                               price
+                               into :item-description,
+                                   :item-artno,
+                                   :item-unitdesc,
+                                   :item-qty,
+                                   :item-price
+                               from item
+                               where item_id = :invitem-item-id
+                       end-exec
+
+                       *> get debtor details
+                       perform X0200-get-debtor-details
+
+                       *> create new filename and rename output.tex
+                       string customer-custno delimited by ' '
+                           '-' delimited by size
+                           invoice-invno delimited by ' '
+                           '.tex' delimited by size
+                           into new-filename
+
+                       call "CBL_RENAME_FILE" using  old-filename
+                                                   new-filename
+                                           returning return-code
+
+                       if return-code not = 0
+                           move return-code to file-status
+                       end-if
                    end-if
-
                end-perform *> middle loop
 
                *> close cursors and re-open
@@ -336,20 +375,22 @@
                    :invitem-item-id
            end-exec
 
-           exec sql
-               select description,
-                   artno,
-                   unitdesc,
-                   qty,
-                   price
-                   into :item-description,
-                       :item-artno,
-                       :item-unitdesc,
-                       :item-qty,
-                       :item-price
-                   from item
-                   where item_id = :invitem-item-id
-           end-exec
+           if not sqlcode = 100 then
+               exec sql
+                   select description,
+                       artno,
+                       unitdesc,
+                       qty,
+                       price
+                       into :item-description,
+                           :item-artno,
+                           :item-unitdesc,
+                           :item-qty,
+                           :item-price
+                       from item
+                       where item_id = :invitem-item-id
+               end-exec
+           end-if
        .
        *>-------------------------------------------------------
        B0250-get-pbs-customer-data.
@@ -365,7 +406,7 @@
                        :customer-boardplace,
                        :customer-tel,
                        :customer-email,
-                       :customer-web,
+                       :customer-web:wn-ind-cust-web,
                        :customer-orgno,
                        :customer-fin-id
                from customer
@@ -387,7 +428,7 @@
                select vatregno,
                        bankgiro,
                        postgiro
-               into   :findata-vatregno,
+               into    :findata-vatregno,
                        :findata-bankgiro,
                        :findata-postgiro
                from findata
@@ -414,7 +455,6 @@
                                               wn-invoice-decimal
                end-if
            end-if
-
 
            display wc-header-pad with no advancing
            display wc-header-pad with no advancing
@@ -471,71 +511,103 @@
            display 'Styrelsens säte ' customer-boardplace with
                    no advancing
            display wc-header-pad with no advancing
-           display customer-web with no advancing
+           if wn-ind-cust-web = 0 then
+               display customer-web with no advancing
+           else
+               display wc-header-pad with no advancing
+           end-if
            display wc-header-pad with no advancing
            display 'Innehar F-skattsedel'
        .
        *>*******************************************************
        *> Utility procedures usable by all procedures in the
        *> program
-       X0100-get-customer-data.
+        X0100-get-customer-data.
            *> get customer
            exec sql
                fetch cur-customers into
                    :customer-cust-id,
+                   :customer-custno,
                    :customer-addr-id
            end-exec
 
-           move customer-cust-id to wn-current-customer-no
-           move customer-addr-id to wn-current-adress-no
+           if not sqlcode = 100 then
+               move customer-cust-id to wn-current-customer-no
+               move customer-addr-id to wn-current-adress-no
 
-           *> get customers adress
-           exec sql
-               select street, postno, place
-                   into :addr-street,
-                           :addr-postno,
-                           :addr-place
-                   from addr
-                   where addr_id = :wn-current-adress-no
-           end-exec
+               *> get customers adress
+               exec sql
+                   select street, postno, place
+                       into :addr-street,
+                               :addr-postno,
+                               :addr-place
+                       from addr
+                       where addr_id = :wn-current-adress-no
+               end-exec
 
-           *> get customers invoices. This procedure assumes that
-           *> cur-invoices either has never been opened or has been
-           *> closed.
-           exec sql
-               open cur-invoices
-           end-exec
+               exec sql
+                   open cur-invoices
+               end-exec
 
-           exec sql
-               fetch cur-invoices into
-                   :invoice-debt-id,
-                   :invoice-invno,
-                   :invoice-custno,
-                   :invoice-invdate,
-                   :invoice-vat
-           end-exec
+               exec sql
+                   fetch cur-invoices into
+                       :invoice-inv-id,
+                       :invoice-cust-id,
+                       :invoice-debt-id,
+                       :invoice-invno,
+                       :invoice-custno,
+                       :invoice-invdate,
+                       :invoice-vat
+               end-exec
+
+               move invoice-inv-id to wn-current-invoice-no
+
+               exec sql
+                   open cur-invoice-items
+               end-exec
+
+               exec sql
+                   fetch cur-invoice-items into
+                       :invitem-item-id
+               end-exec
+
+               exec sql
+                   select description, artno, unitdesc, qty, price
+                       into :item-description,
+                           :item-artno,
+                           :item-unitdesc,
+                           :item-qty,
+                           :item-price
+                       from item
+                       where item_id = :invitem-item-id
+               end-exec
+
+               move zero to wn-invoice-sum
+
+           end-if
        .
        *>-------------------------------------------------------
        X0200-get-debtor-details.
            exec sql
-               select name,
+               select  name,
                        contact,
                        street,
-                       postnr,
+                       postno,
                        place
-               into :wc-debtor-name,
+               into    :wc-debtor-name,
                        :wc-debtor-contact,
                        :wc-debtor-street,
                        :wc-debtor-postnr,
                        :wc-debtor-place
-               from debtor, addr
-               where addr.addr_id =
+               from debtor, addr, invoice
+               where addr.addr_id = debtor.addr_id
+               and debtor.addr_id =
                            (select addr_id
                                from debtor
                                where debtor.debt_id
                                    = invoice.debt_id
                                    and
-                                   invoice.invoice_id
+                                   invoice.inv_id
                                    = :wn-current-invoice-no)
            end-exec
        .
