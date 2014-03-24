@@ -1,6 +1,6 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. PbsRead.
-      **> Koden är inte testat. Den är inte färdig !!!!!
+      **> Koden är testat med data/indata.txt filen. Kan prova!
       **>
       **> Authors: Peter B, Bertil K and Sergejs S.
       **> Purpose: Manage an invoice print company (PBS)
@@ -42,8 +42,10 @@
                88  VALID-POST-FILE         VALUE 'Y'.
            05 VALID-POSTER-COUNTS-SW   PIC X VALUE 'Y'.
                88  VALID-POSTER-COUNTS     VALUE 'Y'.
-           05  VALID-ARTIKEL-NR-SW     PIC X VALUE 'Y'.
-               88  VALID-ARTIKEL-NR        VALUE 'Y'.
+           05  FIRST-TIME-FAKTURA-SW   PIC X VALUE 'Y'.
+               88  FIRST-TIME-FAKTURA      VALUE 'Y'.
+           05  INVOICE-EXIST-SW        PIC X VALUE 'Y'.
+               88  INVOICE-EXIST           VALUE 'Y'.
 
 
        01  FILE-STATUS-FIELDS.
@@ -58,19 +60,19 @@
        01  START-POST-10.
            05  POSTTYP-10      PIC X(2).
            05  SYSTEM-10       PIC X(8).
-           05  KNDNR-10        PIC X(9).
+           05  KNDNR-10        PIC X(10).
            05  FILDAT-10       PIC X(8).
            05  FLNR-10         PIC X(5).
-           05  FILLER          PIC X(268).
+           05  FILLER          PIC X(267).
 
-       01  ORDER-POST-20.
+       01  FAKTURA-POST-20.
            05  POSTTYP-20      PIC X(2).
            05  ORDNR1-20       PIC X(10).
            05  GELNR2-20       PIC X(10).
            05  ORDDAT-20       PIC X(8).
            05  ORDRAB-20       PIC X(2).
            05  MOMS-20         PIC X(2).
-           05  ORDSUM-20       PIC X(8).
+           05  FAKTSUM-20      PIC X(8).
            05  FAKTNR-20       PIC X(16).
            05  GELNMN-20       PIC X(40).
            05  GELADD1-20      PIC X(30).
@@ -81,13 +83,37 @@
            05  GELONR-20       PIC X(10).
            05  FILLER          PIC X(67).
 
+       01  FAKT-SUM            PIC 9(9)    VALUE ZERO.
+       01  FAKT-SUM-1          PIC 9(9)    VALUE ZERO.
+       01  MOMS-T              PIC 9V99    VALUE ZERO.
+
+       01  FAKTURA-POST-20-OLD.
+           05  POSTTYP-20-OLD  PIC X(2).
+           05  ORDNR1-20-OLD   PIC X(10).
+           05  GELNR2-20-OLD   PIC X(10).
+           05  ORDDAT-20-OLD   PIC X(8).
+           05  ORDRAB-20-OLD   PIC X(2).
+           05  MOMS-20-OLD     PIC X(2).
+           05  FAKTSUM-20-OLD  PIC X(8).
+           05  FAKTNR-20-OLD   PIC X(16).
+           05  GELNMN-20-OLD   PIC X(40).
+           05  GELADD1-20-OLD  PIC X(30).
+           05  GELADD2-20-OLD  PIC X(30).
+           05  GELADD3-20-OLD  PIC X(30).
+           05  GELPNR-20-OLD   PIC X(5).
+           05  GELPOR-20-OLD   PIC X(30).
+           05  GELONR-20-OLD   PIC X(10).
+           05  FILLER          PIC X(67).
+
+
        01  ARTIKEL-POST-30.
            05  POSTTYP-30      PIC X(2).
            05  ARTNR-30        PIC X(10).
            05  ARTANT-30       PIC X(4).
            05  ARTPRS-30       PIC X(6).
            05  SUMMA-30        PIC X(9).
-           05  FILLER          PIC X(269).
+           05  BESKRIV-30      PIC X(30).
+           05  FILLER          PIC X(138).
 
        01  ART-SUM             PIC 9(9)    VALUE ZERO.
 
@@ -107,12 +133,14 @@
            EXEC SQL INCLUDE INLOG      END-EXEC.
            EXEC SQL INCLUDE SRV        END-EXEC.
            EXEC SQL INCLUDE FINDATA    END-EXEC.
+           EXEC SQL INCLUDE INERROR    END-EXEC.
 
        PROCEDURE DIVISION.
 
        000-POST-CUST.
 
            PERFORM 100-INIT
+           PERFORM 101-INIT
            PERFORM 100-READ-CUST-FILE UNTIL EOF.
            PERFORM 100-END
            IF  VALID-POST-FILE
@@ -123,21 +151,13 @@
       **************************
 
        100-INIT.
+
            MOVE 'N' TO END-OF-FILE
            MOVE 'N' TO START-POST-EXIST-SW
            MOVE 'N' TO END-POST-EXIST-SW
            MOVE ZERO TO POSTER-COUNT
 
-           OPEN INPUT INDATA
-                OUTPUT FELDATA
-
-           IF INFIL-SUCCESSFUL
-               READ INDATA
-                   AT END SET EOF TO TRUE
-               END-READ
-           ELSE
-               SET EOF TO TRUE
-               DISPLAY ' Indata file error: '.
+           OPEN OUTPUT FELDATA.
       ***********************
 
        100-END.
@@ -187,20 +207,12 @@
       **********************************************************
 
        101-READ-CUST-FILE.
-
-           MOVE 'Y' TO VALID-ARTIKEL-NR-SW
-
            EVALUATE INDATA-TYP
                WHEN '10' CONTINUE
-               WHEN '20' PERFORM 120-ORDER-POST
+               WHEN '20' PERFORM 120-FAKTURA-POST
                WHEN '30' PERFORM 130-ARTIKEL-POST
-               WHEN '90' CONTINUE
+               WHEN '90' PERFORM 220-CHECK-FAKTURA-SUM
            END-EVALUATE
-
-           IF NOT VALID-ARTIKEL-NR
-               DISPLAY ' ARTIKEL-POST är ogiltig'
-               PERFORM WRITE-BAD-FILE
-           END-IF
 
            READ INDATA AT END SET EOF TO TRUE.
       **********************************************************
@@ -224,7 +236,7 @@
       *****************************************************
 
        210-CHECK-CUSTOMER-NR.
-           MOVE FUNCTION NUMVAL(KNDNR-10) TO CUSTOMER-CUSTNO
+           MOVE KNDNR-10 TO CUSTOMER-CUSTNO
                EXEC SQL
                    SELECT CUST_ID
                    INTO :CUSTOMER-CUST-ID
@@ -257,24 +269,29 @@
                DISPLAY ' START-POST är ogiltig'.
       *****************************
 
-       120-ORDER-POST.
-           MOVE INDATA-POST TO ORDER-POST-20
+       120-FAKTURA-POST.
+           MOVE 'N' TO INVOICE-EXIST-SW
+           IF FIRST-TIME-FAKTURA
+               MOVE INDATA-POST TO FAKTURA-POST-20-OLD
+               MOVE INDATA-POST TO FAKTURA-POST-20
+               MOVE 'N' TO FIRST-TIME-FAKTURA-SW
+           ELSE
+               MOVE FAKTURA-POST-20 TO FAKTURA-POST-20-OLD
+               MOVE INDATA-POST TO FAKTURA-POST-20
+           END-IF
            MOVE ORDDAT-20(1:4) TO INLOG-PROCDATE(1:4)
            MOVE ORDDAT-20(5:2) TO INLOG-PROCDATE(6:2)
            MOVE ORDDAT-20(7:2) TO INLOG-PROCDATE(9:2)
            MOVE '-'    TO INLOG-PROCDATE(5:1) INLOG-PROCDATE(8:1)
-           MOVE FUNCTION NUMVAL(ORDNR1-20) TO INLOG-ORDNO
+           MOVE FAKTNR-20 TO INLOG-INVNO
 
-           MOVE 1 TO INLOG-RESULTCODE
+           MOVE ZERO TO INLOG-RESULTCODE
 
            EXEC SQL
                    SELECT MAX(INLOG_ID)
                    INTO :INLOG-INLOG-ID
                    FROM INLOG
            END-EXEC
-           IF SQLCODE NOT = ZERO
-               DISPLAY ' MAX(INLOG_ID) på INLOG tabel är felt'.
-
 
            EXEC SQL
                INSERT INTO INLOG
@@ -282,49 +299,124 @@
                          :CUSTOMER-CUST-ID,
                          :INLOG-FILENO,
                          :INLOG-PROCDATE,
-                         :INLOG-ORDNO,
+                         :INLOG-INVNO,
                          :INLOG-RESULTCODE
                          )
            END-EXEC
 
            IF SQLCODE NOT = ZERO
                DISPLAY ' Insert SQL sats på INLOG tabel är felt'.
+
+           IF FAKTNR-20-OLD NOT = FAKTNR-20
+               PERFORM 220-CHECK-FAKTURA-SUM.
+
+           PERFORM 220-INVOICE-EXIST
+            IF NOT INVOICE-EXIST
+               PERFORM 220-INVOICE-INSERT.
+
+           MOVE ZERO TO FAKT-SUM.
       ****************************
 
        130-ARTIKEL-POST.
            MOVE INDATA-POST    TO ARTIKEL-POST-30
            MOVE ZERO   TO ART-SUM
-      **** Check Artikel NR
-           MOVE ARTNR-30 TO ITEM-ARTNO
-               EXEC SQL
-                   SELECT ITEM_ID
-                   INTO :ITEM-ITEM-ID
-                   FROM ITEM
-                   WHERE ARTNO = :ITEM-ARTNO
-               END-EXEC.
 
-           IF SQLCODE  = ZERO
-               COMPUTE ART-SUM =
+           COMPUTE ART-SUM =
                FUNCTION NUMVAL(ARTANT-30) * FUNCTION NUMVAL(ARTPRS-30)
-               IF ART-SUM NOT = FUNCTION NUMVAL(SUMMA-30)
-                DISPLAY 'Artikel summa är felt. Artikel NR: ' ITEM-ARTNO
-                PERFORM 230-ORDER-UPDATE
-               END-IF
+           COMPUTE FAKT-SUM = FAKT-SUM + ART-SUM
+
+           IF ART-SUM NOT = FUNCTION NUMVAL(SUMMA-30)
+               DISPLAY 'Artikel summa är felt. Artikel NR: ' ARTNR-30
+                STRING 'Felaktig artikelsumma för Art.NR:' ' ' ARTNR-30
+                   DELIMITED BY SIZE INTO INERROR-DESCRIPTION
+               PERFORM 230-ARTIKEL-UPDATE
            ELSE
-               MOVE 'N' TO VALID-ARTIKEL-NR-SW.
+               PERFORM 230-ITEM-INSERT.
       ***************************
 
-       230-ORDER-UPDATE.
-      *** Update Order status in INLOG table
+       230-ARTIKEL-UPDATE.
            EXEC SQL
                UPDATE INLOG
                 SET RESULTCODE = 2
-                WHERE INLOG_ID = :INLOG-INLOG-ID+1
+                WHERE INLOG_ID = :INLOG-INLOG-ID + 1
+           END-EXEC
+           IF SQLCODE NOT = ZERO
+               DISPLAY ' Update Faktura status in INLOG table är felt'
+           ELSE
+               EXEC SQL
+                   SELECT MAX(INERR_ID)
+                   INTO :INERROR-INERR-ID
+                   FROM INERROR
+               END-EXEC
+
+               EXEC SQL
+                   INSERT INTO INERROR
+                   VALUES ( (:INERROR-INERR-ID+1),
+                         :INERROR-DESCRIPTION,
+                         :INLOG-INLOG-ID + 1
+                         )
+               END-EXEC
+               IF SQLCODE NOT = ZERO
+                   DISPLAY ' Insert SQL sats in INERROR table är felt'.
+           .
+      ***************************
+
+       230-FAKTURA-UPDATE.
+      *** Update Order status in INLOG table
+           EXEC SQL
+               UPDATE INLOG
+                SET RESULTCODE = 1
+                WHERE INLOG_ID = :INLOG-INLOG-ID
            END-EXEC.
 
            IF SQLCODE NOT = ZERO
-               DISPLAY ' Update Order status in INLOG table är felt'.
+               DISPLAY ' Update Faktura status in INLOG table är felt'.
+
+           EXEC SQL
+               UPDATE INVOICE
+                SET INVSTATE = 99
+                WHERE INV_ID = :INVOICE-INV-ID + 1
+           END-EXEC.
+
+           IF SQLCODE NOT = ZERO
+             DISPLAY ' Update INVOICE status in INVOICE table är felt'.
+
+           PERFORM 240-INSERT-INERR.
+      ****************************
+
+       240-INSERT-INERR.
+               EXEC SQL
+                   SELECT MAX(INERR_ID)
+                   INTO :INERROR-INERR-ID
+                   FROM INERROR
+               END-EXEC
+
+               EXEC SQL
+                   INSERT INTO INERROR
+                   VALUES ( (:INERROR-INERR-ID+1),
+                         :INERROR-DESCRIPTION,
+                         :INLOG-INLOG-ID
+                         )
+               END-EXEC
+
+           IF SQLCODE NOT = ZERO
+               DISPLAY ' Insert SQL sats in INERROR table är felt'.
       ***************************
+
+       220-CHECK-FAKTURA-SUM.
+           MOVE FAKT-SUM TO FAKT-SUM-1
+           IF INDATA-TYP = '90'
+               MOVE FAKTURA-POST-20 TO FAKTURA-POST-20-OLD
+               ADD 1 TO INLOG-INLOG-ID.
+           IF FAKT-SUM-1 NOT = FUNCTION NUMVAL(FAKTSUM-20-OLD)
+             DISPLAY 'Faktura summa är felt. Faktura NR: ' FAKTNR-20-OLD
+             STRING 'Felaktig fakturasumma för Fak.NR: '   FAKTNR-20-OLD
+                   DELIMITED BY SIZE INTO INERROR-DESCRIPTION
+             PERFORM 230-FAKTURA-UPDATE
+            END-IF
+            .
+      *        PERFORM WRITE-BAD-FILE
+      ****************************
 
        190-SLUT-POST.
            IF NOT END-POST-EXIST
@@ -339,6 +431,144 @@
            ELSE
                MOVE 'N' TO VALID-POST-FILE-SW
                DISPLAY ' SLUTT-POST är dubbel'.
+      ****************************
+
+       220-INVOICE-EXIST.
+           MOVE FAKTNR-20  TO  INVOICE-INVNO
+           EXEC SQL
+                 SELECT INV_ID
+                 INTO :INVOICE-INV-ID
+                 FROM INVOICE
+          WHERE CUST_ID=:CUSTOMER-CUST-ID AND INVNO=:INVOICE-INVNO
+           END-EXEC
+
+           IF SQLCODE = ZERO
+               MOVE 'Y' TO INVOICE-EXIST-SW.
+       .
+      **************************
+
+       220-INVOICE-INSERT.
+           MOVE GELNMN-20  TO DEBTOR-NAME
+           MOVE GELADD1-20 TO ADDR-STREET
+           MOVE GELPNR-20  TO ADDR-POSTNO
+           MOVE GELPOR-20  TO ADDR-PLACE
+           MOVE SPACE      TO DEBTOR-CONTACT DEBTOR-NOTE
+
+           EXEC SQL
+                   SELECT MAX(ADDR_ID)
+                   INTO :ADDR-ADDR-ID
+                   FROM ADDR
+           END-EXEC
+
+           EXEC SQL
+               INSERT INTO ADDR
+               VALUES ( (:ADDR-ADDR-ID+1),
+                         :ADDR-STREET,
+                         :ADDR-POSTNO,
+                         :ADDR-PLACE )
+           END-EXEC
+
+           IF SQLCODE NOT = ZERO
+               DISPLAY ' Insert SQL sats in ADDR table är felt'.
+
+      *    EXEC SQL
+      *        UPDATE CUSTOMER
+      *        SET ADDR_ID = :ADDR-ADDR-ID+1
+      *        WHERE CUST_ID = :CUSTOMER-CUST-ID
+      *    END-EXEC
+      *
+      *    IF SQLCODE NOT = ZERO
+      *        DISPLAY ' Update SQL sats in CUSTOMER table är felt'.
+
+           EXEC SQL
+                   SELECT MAX(DEBT_ID)
+                   INTO :DEBTOR-DEBT-ID
+                   FROM DEBTOR
+           END-EXEC
+
+           EXEC SQL
+               INSERT INTO DEBTOR
+               VALUES ( (:DEBTOR-DEBT-ID+1),
+                         :DEBTOR-NAME,
+                         :DEBTOR-CONTACT,
+                         :DEBTOR-NOTE,
+                        (:ADDR-ADDR-ID+1))
+           END-EXEC
+
+           IF SQLCODE NOT = ZERO
+               DISPLAY ' Insert SQL sats in DEBTOR table är felt'.
+
+           EXEC SQL
+                   SELECT MAX(INV_ID)
+                   INTO :INVOICE-INV-ID
+                   FROM INVOICE
+           END-EXEC
+
+           MOVE 0 TO INVOICE-INVSTATE
+           COMPUTE MOMS-T = 0.01 * FUNCTION NUMVAL(MOMS-20)
+           MOVE MOMS-T TO INVOICE-VAT
+           MOVE FAKTNR-20  TO  INVOICE-INVNO
+           MOVE CUSTOMER-CUSTNO    TO  INVOICE-CUSTNO
+           MOVE ORDDAT-20(1:4) TO INVOICE-INVDATE(1:4)
+           MOVE ORDDAT-20(5:2) TO INVOICE-INVDATE(6:2)
+           MOVE ORDDAT-20(7:2) TO INVOICE-INVDATE(9:2)
+           MOVE '-'    TO INVOICE-INVDATE(5:1) INVOICE-INVDATE(8:1)
+
+           EXEC SQL
+               INSERT INTO INVOICE
+               VALUES ( (:INVOICE-INV-ID+1),
+                         :CUSTOMER-CUST-ID,
+                        (:DEBTOR-DEBT-ID+1),
+                         :INVOICE-INVSTATE,
+                         :INVOICE-INVNO,
+                         :INVOICE-CUSTNO,
+                         :INVOICE-INVDATE,
+                         :INVOICE-VAT)
+           END-EXEC
+
+           IF SQLCODE NOT = ZERO
+               DISPLAY ' Insert SQL sats in INVOICE table är felt'.
+      ****************************
+
+       230-ITEM-INSERT.
+           MOVE ARTNR-30 TO ITEM-ARTNO
+           MOVE FUNCTION NUMVAL(ARTANT-30) TO ITEM-QTY
+           MOVE FUNCTION NUMVAL(ARTPRS-30) TO ITEM-PRICE
+           MOVE FUNCTION NUMVAL(ARTANT-30) TO ITEM-QTY
+           MOVE BESKRIV-30 TO ITEM-DESCRIPTION
+
+           EXEC SQL
+                   SELECT MAX(ITEM_ID)
+                   INTO :ITEM-ITEM-ID
+                   FROM ITEM
+           END-EXEC
+
+           IF SQLCODE NOT = ZERO
+               DISPLAY ' MAX(ITEM_ID) på ITEM tabel är felt'.
+
+           EXEC SQL
+               INSERT INTO ITEM
+               VALUES ( (:ITEM-ITEM-ID+1),
+                         :ITEM-DESCRIPTION,
+                         :ITEM-ARTNO,
+                         :ITEM-UNITDESC,
+                         :ITEM-QTY,
+                         :ITEM-PRICE
+                         )
+           END-EXEC
+
+           IF SQLCODE NOT = ZERO
+               DISPLAY ' Insert SQL sats på ITEM tabel är felt'.
+
+           EXEC SQL
+               INSERT INTO INVITEM
+               VALUES ( (:INVOICE-INV-ID+1),
+                        (:ITEM-ITEM-ID+1))
+           END-EXEC
+
+           IF SQLCODE NOT = ZERO
+               DISPLAY ' Insert SQL sats in INVITEM table är felt'.
+
       ****************************
 
        WRITE-BAD-FILE.
