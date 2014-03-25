@@ -159,14 +159,10 @@ CREATE TABLE SRV (
     ARTNO CHAR(10) NOT NULL,
     DESCRIPTION CHAR(40) NOT NULL,
     CHARGE DECIMAL(5,2) NOT NULL,
-    CUST_ID INTEGER NOT NULL,
     /* unique */
    UNIQUE (ARTNO),
     /* keys */
-    PRIMARY KEY (SRV_ID),
-    /* foreign keys */
-    FOREIGN KEY(CUST_ID)
-	REFERENCES CUSTOMER(CUST_ID)
+    PRIMARY KEY (SRV_ID)
 );
 
 CREATE UNIQUE INDEX idx_srv
@@ -219,7 +215,26 @@ CREATE TABLE INVITEM (
 	REFERENCES ITEM(ITEM_ID)
 );
 
-CREATE UNIQUE INDEX idx_invitem
+CREATE UNIQUE INDEX idx_initem
 	ON INVITEM(INV_ID,ITEM_ID);
+
+-- ---------------------------------------------------------------------- 
+-- Add table "SRVCUST"                                                    
+-- ---------------------------------------------------------------------- 
+
+CREATE TABLE SRVCUST (
+    SRV_ID INTEGER NOT NULL,
+    CUST_ID INTEGER NOT NULL,
+    /* keys */
+    PRIMARY KEY (SRV_ID, CUST_ID),
+    /* foreign keys */
+    FOREIGN KEY(SRV_ID)
+	REFERENCES SRV(SRV_ID),
+    FOREIGN KEY(CUST_ID)
+	REFERENCES CUSTOMER(CUST_ID)
+);
+
+CREATE UNIQUE INDEX idx_srvcust
+	ON SRVCUST(SRV_ID,CUST_ID);
 
 
