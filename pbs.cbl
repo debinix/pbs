@@ -131,15 +131,15 @@
        B100-diplay-main-menu-list.
        
            DISPLAY HEADLINE
-           DISPLAY '*** HUVUDMENY ***'
+           DISPLAY 'PBS HUVUDMENY'
            DISPLAY HEADLINE
            DISPLAY '(10) Processa inkommande fakturafil'
            DISPLAY '(20) Skriv gäldenärsfakturor'
            DISPLAY '(30) Processtatestik'
-           DISPLAY '(40) PBS företagsrapporter'
+      *    DISPLAY '(40) PBS företagsrapporter'
            DISPLAY '(50) Kundregister'
            DISPLAY '(60) Artikelregister'
-           DISPLAY '(70) Underhåll'
+           DISPLAY '(70) Program underhåll'
            DISPLAY SPACE
            DISPLAY '(99) Avsluta programmet'
            DISPLAY HEADLINE
@@ -173,7 +173,7 @@
        C110-diplay-load-invoices-menu.
 
            DISPLAY HEADLINE
-           DISPLAY '*** GÄLDENÄRSFAKTUROR ***'
+           DISPLAY 'SUBMENY GÄLDENÄRSFAKTUROR'
            DISPLAY HEADLINE
            DISPLAY '(11) Importera mottagna gäldenärsfakturor'
            DISPLAY SPACE
@@ -215,7 +215,7 @@
        E110-diplay-print-menu.
 
            DISPLAY HEADLINE
-           DISPLAY '*** SKRIVA UT FAKTUROR ***'
+           DISPLAY 'SUBMENY FAKTUROR'
            DISPLAY HEADLINE
            DISPLAY '(21) Skriv ut alla väntande gäldenärsfakturor'
            DISPLAY '(22) Skriv ut enskild gäldenärsfakturor'
@@ -258,7 +258,7 @@
        G110-diplay-statistics-menu.
 
            DISPLAY HEADLINE
-           DISPLAY '*** PROCESS RAPPORTER ***'
+           DISPLAY 'SUBMENY PROCESSRAPPORTER ***'
            DISPLAY HEADLINE
            DISPLAY '(31) Rapport inkontroll av fakturafiler'
            DISPLAY '(32) Rapport utprocess av gäldenärsfakturor'
@@ -298,7 +298,7 @@
        I110-diplay-cmp-report-menu.
 
            DISPLAY HEADLINE
-           DISPLAY '*** PBS INTERNA RAPPORTER ***'
+           DISPLAY 'SUBMENY PBS EKONOMISKA RAPPORTER'
            DISPLAY HEADLINE
            DISPLAY '(41) Rapport intäkter denna månad'
            DISPLAY '(42) Rapport intäkter ackumulerat i år'
@@ -344,7 +344,7 @@
        K110-diplay-customer-menu.
 
            DISPLAY HEADLINE
-           DISPLAY '*** KUNDREGISTER ***'
+           DISPLAY 'SUBMENY KUNDREGISTER'
            DISPLAY HEADLINE
            DISPLAY '(51) Visa kundregister'
            DISPLAY '(52) Uppdatera kundregistret'
@@ -438,7 +438,7 @@
        M110-diplay-product-menu.
 
            DISPLAY HEADLINE
-           DISPLAY '*** ARTIKELREGISTER ***'
+           DISPLAY 'SUBMENY ARTIKELREGISTER'
            DISPLAY HEADLINE
            DISPLAY '(61) Visa all produkter'
            DISPLAY '(62) Uppdatera produktdetaljer'
@@ -483,7 +483,7 @@
        X110-diplay-maintenance-menu.
 
            DISPLAY HEADLINE
-           DISPLAY '*** PROGRAM UNDERHÅLL ***'
+           DISPLAY 'SUBMENY PROGRAM UNDERHÅLL'
            DISPLAY HEADLINE
            DISPLAY '(71) Visa PBS företagsinformation'
            DISPLAY '(72) Uppdatera PBS företagsinformation'
@@ -513,10 +513,8 @@
       **********************************************************
        Z0900-error-routine.
 
-      *    simple error check - see pp 277 for improved version
            DISPLAY 'ERROR SQLCODE: ' SQLCODE
 
-      *    SQLSTATE for XDB may be different from DB2 and other stds
            EVALUATE SQLSTATE
 
               WHEN "02000"

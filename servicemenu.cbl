@@ -469,10 +469,8 @@
       **********************************************************
        Z0900-error-routine.
 
-      *    simple error check - see pp 277 for improved version
            DISPLAY 'ERROR SQLCODE: ' SQLCODE
 
-      *    SQLSTATE for XDB may be different from DB2 and other stds
            EVALUATE SQLSTATE
 
               WHEN "02000"
