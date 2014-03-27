@@ -1,0 +1,100 @@
+\documentclass[DIN, pagenumber=false, parskip=half,
+               fromalign=right, fromphone=true, fromfax=false,
+               fromrule=false]{scrlttr2}     
+ 
+
+\usepackage[swedish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{textcomp}
+\usepackage{longtable}
+\usepackage{eurosym}
+
+\LoadLetterOption{template}
+
+\newcommand{\stdlohn}[0]{11 \Kr.}
+
+\renewcommand*{\raggedsignature}{\raggedright} 
+
+\setkomavar{fromname}{Mina Möbler AB}
+\setkomavar{fromphone}{08-580 12345}
+\setkomavar{fromaddress}{Folkungavägen 80 \\ 17730 Järfälla}
+\setkomavar{frombank}{ BG: 123-1234 \\ \\ PG: 123456-7\\}
+
+\setkomavar{subject}[]{Faktura}
+\setkomavar{yourmail}[Fakturanummer]{A000000001}
+\setkomavar{yourref}[Kundnummer]{K125689}
+\setkomavar{date}[Datum]{2014-03-27}
+
+%===================================
+% footer
+
+\firstfoot{
+	\parbox[t]{\textwidth}{\footnotesize 
+	 	
+	\begin{tabular}[t]{l@{}}
+		 \multicolumn{1}{@{}l@{}}{Firma:}\\ 
+		 Mina Möbler AB\\
+		Folkungavägen 80,17730 Järfälla\\ \\
+		 Telefon: \usekomavar{fromphone} \\
+		 E-post: putte@tra-example.com \\
+		Web: www.mm-example.com\\
+	\end{tabular}
+	 \hfill{}
+	 \begin{tabular}[t]{l@{}}
+		 \multicolumn{1}{@{}l@{}}{Företagsinformation:}\\ 
+		Momsregistreringsnummer:\\
+		SE554433221101\\ \\
+		
+		Organisationsnummer\\		
+		654321-1111\\
+		Innehar F-skattesedel.\\
+	 \end{tabular}
+	 \hfill{}
+	 \begin{tabular}[t]{l@{}}
+		 \multicolumn{1}{@{}l@{}}{Bankgiro/postgiro:}\\ 
+		 BG: 123-1234 \\
+		 PG: 123456-7\\ 
+	 \end{tabular} 
+ }}
+
+\begin{document}
+
+ 
+%===================================
+% receiver
+\begin{letter}{
+	Stenson Bygg AB\\ 
+	Er ref.:  Sten Stenson\\ \ \\
+	Verkstadsgatan 13\\
+	15648 Umeå
+}
+
+\opening{\ }
+\vspace{-1.5cm}
+
+%===================================
+\begin{longtable}{p{2.5cm}p{5.5cm}p{1cm}p{1cm}p{2.5cm}p{2.5cm}}
+	\hline 	
+	Artikelnummer & Beskrivning & Antal & Enhet & Pris/enhet (exkl. moms.) & Totalt/artikel (exkl. moms.)\\
+	\hline 
+	
+	45689 & Finnspång, träbord & 1 & Styck & 1000 kr. & 1000,00 kr.\\
+	45812 & Julia, kontorsstol  & 2 & Styck & 2500 kr. & 5000,00 kr.\\
+	45812 & von Anka, direktörsstol  & 1 & Styck & 4000 kr. & 4000,00 kr.\\
+	
+	\hline\hline 
+\end{longtable}
+
+
+\begin{longtable}{p{5.5cm}p{2.5cm}p{2.5cm}p{2.5cm}p{2.5cm}}
+	\hline Nettobelopp &   & 25\% moms &  Öresutjmn.  & Bruttobelopp\\
+	\hline 
+	10000,00 kr. &   & 2500,00 kr.  &  0,00 kr.  & 12500,00 kr.\\
+	\hline 
+	\hline 	
+\end{longtable}
+
+
+\end{letter}
+\end{document}
