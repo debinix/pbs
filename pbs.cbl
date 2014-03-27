@@ -162,7 +162,7 @@
                    WHEN '11'
       *                PERFORM C0120-process-import-file
                        MOVE SPACE TO wc-accept
-                   WHEN '99'
+                   WHEN '19'
                        SET is-exit-load-file-menu TO TRUE
                        CONTINUE
                    WHEN OTHER
@@ -180,7 +180,7 @@
            DISPLAY HEADLINE
            DISPLAY '(11) Importera mottagna gäldenärsfakturor'
            DISPLAY SPACE
-           DISPLAY '(99) Tillbaka till huvudmenyn'
+           DISPLAY '(19) Tillbaka till huvudmenyn'
            DISPLAY HEADLINE
            DISPLAY ': ' WITH NO ADVANCING
            ACCEPT wc-accept
@@ -204,7 +204,7 @@
                    WHEN '27'
       *                PERFORM E0140-submit-customer-invoice
                        MOVE SPACE TO wc-accept
-                   WHEN '99'
+                   WHEN '29'
                        SET is-exit-print-menu TO TRUE
                        CONTINUE
                    WHEN OTHER
@@ -225,7 +225,7 @@
            DISPLAY SPACE
            DISPLAY '(27) Processa och skicka kundfaktura'
            DISPLAY SPACE
-           DISPLAY '(99) Tillbaka till huvudmenyn'
+           DISPLAY '(29) Tillbaka till huvudmenyn'
            DISPLAY HEADLINE
            DISPLAY ': ' WITH NO ADVANCING
            ACCEPT wc-accept
@@ -247,7 +247,7 @@
                    WHEN '32'
       *                PERFORM G0130-display-out-process-logs
                        MOVE SPACE TO wc-accept
-                   WHEN '99'
+                   WHEN '39'
                        SET is-exit-statistics-menu TO TRUE
                        CONTINUE
                    WHEN OTHER
@@ -266,7 +266,7 @@
            DISPLAY '(31) Rapport inkontroll av fakturafiler'
            DISPLAY '(32) Rapport utprocess av gäldenärsfakturor'
            DISPLAY SPACE
-           DISPLAY '(99) Tillbaka till huvudmenyn'
+           DISPLAY '(39) Tillbaka till huvudmenyn'
            DISPLAY HEADLINE
            DISPLAY ': ' WITH NO ADVANCING
            ACCEPT wc-accept
@@ -287,7 +287,7 @@
                    WHEN '42'
       *                PERFORM I0130-display-accumulated-rpt
                        MOVE SPACE TO wc-accept
-                   WHEN '99'
+                   WHEN '49'
                        SET is-exit-pbs-rpt-menu TO TRUE
                        CONTINUE
                    WHEN OTHER
@@ -306,7 +306,7 @@
            DISPLAY '(41) Rapport intäkter denna månad'
            DISPLAY '(42) Rapport intäkter ackumulerat i år'
            DISPLAY SPACE
-           DISPLAY '(99) Tillbaka till huvudmenyn'
+           DISPLAY '(49) Tillbaka till huvudmenyn'
            DISPLAY HEADLINE
            DISPLAY ': ' WITH NO ADVANCING
            ACCEPT wc-accept
@@ -333,7 +333,7 @@
                    WHEN '54'
       *                PERFORM K0150-inactivate-customer
                        MOVE SPACE TO wc-accept
-                   WHEN '99'
+                   WHEN '59'
                        SET is-exit-customer-menu TO TRUE
                        CONTINUE
                    WHEN OTHER
@@ -354,7 +354,7 @@
            DISPLAY '(53) Lägg till ny kund'
            DISPLAY '(54) Inaktivera kund'
            DISPLAY SPACE
-           DISPLAY '(99) Tillbaka till huvudmenyn'
+           DISPLAY '(59) Tillbaka till huvudmenyn'
            DISPLAY HEADLINE
            DISPLAY ': ' WITH NO ADVANCING
            ACCEPT wc-accept
@@ -426,7 +426,7 @@
                    WHEN '64'
                        CALL 'servicemenu' USING wc-accept
                        MOVE SPACE TO wc-accept
-                   WHEN '99'
+                   WHEN '69'
                        SET is-exit-product-menu TO TRUE
                        CONTINUE
                    WHEN OTHER
@@ -448,7 +448,7 @@
            DISPLAY '(63) Lägg till ny produkt'
            DISPLAY '(64) Ta bort produkt'
            DISPLAY SPACE
-           DISPLAY '(99) Tillbaka till huvudmenyn'
+           DISPLAY '(69) Tillbaka till huvudmenyn'
            DISPLAY HEADLINE
            DISPLAY ': ' WITH NO ADVANCING
            ACCEPT wc-accept
@@ -472,7 +472,7 @@
                    WHEN '73'
       *                PERFORM X0140-print-copy-of-invoice
                        MOVE SPACE TO wc-accept
-                   WHEN '99'
+                   WHEN '79'
                        SET is-exit-maintenance-menu TO TRUE
                        CONTINUE
                    WHEN OTHER
@@ -492,7 +492,7 @@
            DISPLAY '(72) Uppdatera PBS företagsinformation'
            DISPLAY '(73) Skriv ut kopia av gäldenärsfaktura'
            DISPLAY SPACE
-           DISPLAY '(99) Tillbaka till huvudmenyn'
+           DISPLAY '(79) Tillbaka till huvudmenyn'
            DISPLAY HEADLINE
            DISPLAY ': ' WITH NO ADVANCING
            ACCEPT wc-accept
