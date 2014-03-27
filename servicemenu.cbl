@@ -2,8 +2,8 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. servicemenu IS INITIAL.
       *
-      * Coder: BK
-      * Purpose: Maintain PBS products (services) database table
+      * Authors: Peter B, Bertil K and Sergejs S.
+      * Purpose: Maintain products/articles database table
       * Initial Version Created: 2014-03-19
       *
       **********************************************************
@@ -43,16 +43,6 @@
                ORDER BY SRV_ID DESC
            END-EXEC
 
-      *    list customers ids
-           EXEC SQL
-               DECLARE BCURSRV3 CURSOR FOR
-               SELECT C.CUST_ID, C.NAME
-               FROM TUTORIAL.CUSTOMER C
-               WHERE C.CUSTNO NOT LIKE 'PBS%'
-                              AND ACTIVE = 'Y'
-               ORDER BY C.CUST_ID
-           END-EXEC
-
       *    switches
        01  menu-switches.
            05 is-exit-update-menu-switch      PIC X(1) VALUE 'N'.
@@ -60,13 +50,16 @@
            05 is-existing-id-number-switch    PIC X(1) VALUE 'N'.
                88  is-existing-id-number               VALUE 'Y'.
 
-
+      *    working storage data for error routine
+           COPY Z0900-error-wkstg.
 
       *    Various generic variables
-       01  wc-accept                    PIC X(2)    VALUE SPACE.
-       01  we-srv-id                    PIC Z9      VALUE ZERO.
-       01  we-charge                    PIC Z9.99   VALUE ZERO.
-       01  we-cust-id                   PIC Z9      VALUE ZERO.
+       01  wc-accept                    PIC X(2)     VALUE SPACE.
+       01  we-srv-id                    PIC Z9       VALUE ZERO.
+       01  we-charge                    PIC ZZ9.99   VALUE ZERO.
+       01  wc-charge                    PIC X(5)     VALUE SPACE.
+       01  we-cust-id                   PIC Z9       VALUE ZERO.
+       01  we-sqlrows                   PIC Z9       VALUE ZERO.
 
 
       *    Updating table variables
@@ -87,6 +80,8 @@
        PROCEDURE DIVISION USING lc-accept.
        0000-servicemenu.
 
+      *    current source file to error handler
+           MOVE 'servicemenu.cbl' TO wc-msg-srcfile
 
           EVALUATE lc-accept
 
@@ -98,7 +93,7 @@
                    PERFORM M0160-add-article
                WHEN '64'
                CONTINUE
-                   PERFORM M0180-delete-article
+                   PERFORM M0170-delete-article
                WHEN OTHER
                    DISPLAY 'Fel menyval från huvudprogram!'
            END-EVALUATE
@@ -200,7 +195,7 @@
       **********************************************************
        M0130-update-article-number.
 
-           PERFORM M0190-confirm-id-number
+           PERFORM M0180-confirm-id-number
            IF is-existing-id-number
 
                DISPLAY HEADLINE
@@ -219,6 +214,12 @@
                    DISPLAY 'Artikelnumret har uppdaterats!'
                ELSE
                    DISPLAY 'Ett problem uppstod vid uppdateringen!'
+
+      *            add error trace information
+                   MOVE  SQLCODE            TO wn-msg-sqlcode
+                   MOVE 'TUTORIAL.SRV'      TO wc-msg-tblcurs
+                   MOVE 'M0130-update-article-number' TO wc-msg-para
+
                    PERFORM Z0900-error-routine
                END-IF
 
@@ -230,7 +231,7 @@
       **********************************************************
        M0140-update-description.
 
-           PERFORM M0190-confirm-id-number
+           PERFORM M0180-confirm-id-number
            IF is-existing-id-number
 
                DISPLAY HEADLINE
@@ -249,6 +250,12 @@
                    DISPLAY 'Beskrivningen har uppdaterats!'
                ELSE
                    DISPLAY 'Ett problem uppstod vid uppdateringen!'
+
+      *            add error trace information
+                   MOVE  SQLCODE            TO wn-msg-sqlcode
+                   MOVE 'TUTORIAL.SRV'      TO wc-msg-tblcurs
+                   MOVE 'M0140-update-description' TO wc-msg-para
+
                    PERFORM Z0900-error-routine
                END-IF
 
@@ -261,7 +268,7 @@
       **********************************************************
        M0150-update-charge.
 
-           PERFORM M0190-confirm-id-number
+           PERFORM M0180-confirm-id-number
            IF is-existing-id-number
 
                MOVE w9-charge TO we-charge
@@ -282,6 +289,12 @@
                    DISPLAY 'Produktavgiften har uppdaterats!'
                ELSE
                    DISPLAY 'Ett problem uppstod vid uppdateringen!'
+
+      *            add error trace information
+                   MOVE  SQLCODE            TO wn-msg-sqlcode
+                   MOVE 'TUTORIAL.SRV'      TO wc-msg-tblcurs
+                   MOVE 'M0150-update-charge' TO wc-msg-para
+
                    PERFORM Z0900-error-routine
                END-IF
 
@@ -308,19 +321,12 @@
            DISPLAY ': ' WITH NO ADVANCING
            ACCEPT w9-charge
 
-      *    TODO not really ok, SRV-CUSTOMER table relations needs fix
-           PERFORM M0170-list-customer-ids
-
-           DISPLAY 'Välj ett kund id att knyta till denna produkt'
-           DISPLAY ': ' WITH NO ADVANCING
-           ACCEPT customer-cust-id
-
       *    open cursor
            EXEC SQL
                OPEN BCURSRV2
            END-EXEC
 
-      *    fetch first row (which now have the highest id - i.e. pk)
+      *    fetch first row (which now have the highest id - i.e. PK)
            EXEC SQL
                FETCH BCURSRV2
                INTO :w9-srv-id
@@ -328,6 +334,12 @@
 
            IF SQLCODE NOT = ZERO
                DISPLAY 'Ett problem uppstod för att hitta nästa rad!'
+
+      *        add error trace information
+               MOVE  SQLCODE            TO wn-msg-sqlcode
+               MOVE 'BCURSRV2'          TO wc-msg-tblcurs
+               MOVE 'M0160-add-article' TO wc-msg-para
+
                PERFORM Z0900-error-routine
            ELSE
       *        add one for new article
@@ -336,15 +348,24 @@
       *        add product to table
                EXEC SQL
                    INSERT INTO TUTORIAL.SRV
-                   VALUES (:w9-srv-id, :wc-artno,:wc-description,
-                           :w9-charge, :customer-cust-id)
+                   VALUES (:w9-srv-id, :wc-artno,
+                           :wc-description, :w9-charge)
                END-EXEC
 
                IF SQLCODE NOT = ZERO
                    DISPLAY 'Produkten kunde inte läggas till!'
+
+      *            add error trace information
+                   MOVE  SQLCODE            TO wn-msg-sqlcode
+                   MOVE 'TUTORIAL.SRV'      TO wc-msg-tblcurs
+                   MOVE 'M0160-add-article' TO wc-msg-para
+
                    PERFORM Z0900-error-routine
+
                ELSE
-                   DISPLAY 'Produkten har lagts till i registret!'
+                   MOVE SQLERRD(3)TO we-sqlrows
+                   DISPLAY we-sqlrows ' rad har lagts till i registret'
+
                END-IF
 
            END-IF
@@ -355,49 +376,11 @@
            END-EXEC
 
            .
-      **********************************************************
-       M0170-list-customer-ids.
-
-           EXEC SQL
-               OPEN BCURSRV3
-           END-EXEC
-
-           EXEC SQL
-               FETCH BCURSRV3
-                   INTO :CUSTOMER-CUST-ID,:CUSTOMER-NAME
-           END-EXEC
-
-           DISPLAY 'Id|Kundnamn'
-           DISPLAY HEADLINE
-           PERFORM UNTIL SQLCODE NOT = ZERO
-
-               MOVE CUSTOMER-CUST-ID TO we-cust-id
-               DISPLAY we-cust-id '|' CUSTOMER-NAME
-
-      *        fetch next row
-               EXEC SQL
-               FETCH BCURSRV3
-                   INTO :CUSTOMER-CUST-ID,:CUSTOMER-NAME
-               END-EXEC
-
-           END-PERFORM
-           DISPLAY HEADLINE
-
-      *    end of data
-           IF SQLSTATE NOT = "02000"
-               PERFORM Z0900-error-routine
-           END-IF
-
-      *    close cursor
-           EXEC SQL
-               CLOSE BCURSRV3
-           END-EXEC
-           .
 
       **********************************************************
-       M0180-delete-article.
+       M0170-delete-article.
 
-           PERFORM M0190-confirm-id-number
+           PERFORM M0180-confirm-id-number
            IF is-existing-id-number
 
 
@@ -418,9 +401,16 @@
 
                    IF SQLCODE = ZERO
                        DISPLAY HEADLINE
-                       DISPLAY 'Produkten har tagits bort!'
+                       MOVE SQLERRD(3) TO we-sqlrows
+                       DISPLAY we-sqlrows ' rad i registret borttagen'
                    ELSE
                        DISPLAY 'Ett problem uppstod vid borttagningen'
+
+      *                add error trace information
+                       MOVE  SQLCODE               TO wn-msg-sqlcode
+                       MOVE 'TUTORIAL.SRV'         TO wc-msg-tblcurs
+                       MOVE 'M0170-delete-article' TO wc-msg-para
+
                        PERFORM Z0900-error-routine
                    END-IF
 
@@ -430,20 +420,20 @@
                END-IF
 
            ELSE
-               DISPLAY 'Ogiltigt id nummer - se meny 61'
+               DISPLAY 'Ogiltigt id nummer'
            END-IF
            .
 
 
       **********************************************************
-       M0190-confirm-id-number.
+       M0180-confirm-id-number.
 
            MOVE 'N' TO is-existing-id-number-switch
 
-      *    TODO: display list of SRV ids to chose from
+           PERFORM M0110-list-articles
 
            DISPLAY HEADLINE
-           DISPLAY 'Ge aktuellt id-nummer för uppdatering'
+           DISPLAY 'Ge id-nummer för åtgärd'
            DISPLAY ': ' WITH NO ADVANCING
            ACCEPT w9-srv-id
 
@@ -458,6 +448,12 @@
                 SET is-existing-id-number TO TRUE
            ELSE
                IF SQLSTATE NOT = "02000"
+
+      *            add error trace information
+                   MOVE  SQLCODE                  TO wn-msg-sqlcode
+                   MOVE 'TUTORIAL.SRV'            TO wc-msg-tblcurs
+                   MOVE 'M0180-confirm-id-number' TO wc-msg-para
+
                    PERFORM Z0900-error-routine
                END-IF
            END-IF
@@ -468,8 +464,7 @@
        Z0900-error-routine.
 
       *    requires the ending dot (and no extension)!
-
            COPY Z0900-error-routine.
+           .
 
-            .
       **********************************************************
