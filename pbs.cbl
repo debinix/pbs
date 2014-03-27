@@ -71,6 +71,9 @@
            05 is-exit-statistics-menu-switch  PIC X(1) VALUE 'N'.
                88  is-exit-statistics-menu             VALUE 'Y'.
 
+      *    working storage data for error routine
+           COPY Z0900-error-wkstg.
+
       *    Various generic variables
        01  wc-accept                    PIC X(2)    VALUE SPACE.
        

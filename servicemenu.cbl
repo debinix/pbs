@@ -2,8 +2,8 @@
        IDENTIFICATION DIVISION.
        PROGRAM-ID. servicemenu IS INITIAL.
       *
-      * Coder: BK
-      * Purpose: Maintain PBS products (services) database table
+      * Authors: Peter B, Bertil K and Sergejs S.
+      * Purpose: Maintain products/articles database table
       * Initial Version Created: 2014-03-19
       *
       **********************************************************
@@ -60,7 +60,8 @@
            05 is-existing-id-number-switch    PIC X(1) VALUE 'N'.
                88  is-existing-id-number               VALUE 'Y'.
 
-
+      *    working storage data for error routine
+           COPY Z0900-error-wkstg.
 
       *    Various generic variables
        01  wc-accept                    PIC X(2)    VALUE SPACE.
@@ -87,8 +88,10 @@
        PROCEDURE DIVISION USING lc-accept.
        0000-servicemenu.
 
+      *    current source file to error handler
+           MOVE 'servicemenu.cbl' TO wc-msg-srcfile
 
-          EVALUATE lc-accept
+           EVALUATE lc-accept
 
                WHEN '61'
                    PERFORM M0110-list-articles
@@ -219,6 +222,12 @@
                    DISPLAY 'Artikelnumret har uppdaterats!'
                ELSE
                    DISPLAY 'Ett problem uppstod vid uppdateringen!'
+
+      *            add error trace information
+                   MOVE  SQLCODE            TO wn-msg-sqlcode
+                   MOVE 'TUTORIAL.SRV'      TO wc-msg-tblcurs
+                   MOVE 'M0130-update-article-number' TO wc-msg-para
+
                    PERFORM Z0900-error-routine
                END-IF
 
@@ -249,6 +258,12 @@
                    DISPLAY 'Beskrivningen har uppdaterats!'
                ELSE
                    DISPLAY 'Ett problem uppstod vid uppdateringen!'
+
+      *            add error trace information
+                   MOVE  SQLCODE            TO wn-msg-sqlcode
+                   MOVE 'TUTORIAL.SRV'      TO wc-msg-tblcurs
+                   MOVE 'M0140-update-description' TO wc-msg-para
+
                    PERFORM Z0900-error-routine
                END-IF
 
@@ -282,6 +297,12 @@
                    DISPLAY 'Produktavgiften har uppdaterats!'
                ELSE
                    DISPLAY 'Ett problem uppstod vid uppdateringen!'
+
+      *            add error trace information
+                   MOVE  SQLCODE            TO wn-msg-sqlcode
+                   MOVE 'TUTORIAL.SRV'      TO wc-msg-tblcurs
+                   MOVE 'M0150-update-charge' TO wc-msg-para
+
                    PERFORM Z0900-error-routine
                END-IF
 
@@ -328,6 +349,12 @@
 
            IF SQLCODE NOT = ZERO
                DISPLAY 'Ett problem uppstod för att hitta nästa rad!'
+
+      *        add error trace information
+               MOVE  SQLCODE            TO wn-msg-sqlcode
+               MOVE 'BCURSRV2'          TO wc-msg-tblcurs
+               MOVE 'M0160-add-article' TO wc-msg-para
+
                PERFORM Z0900-error-routine
            ELSE
       *        add one for new article
@@ -342,7 +369,14 @@
 
                IF SQLCODE NOT = ZERO
                    DISPLAY 'Produkten kunde inte läggas till!'
+
+      *            add error trace information
+                   MOVE  SQLCODE            TO wn-msg-sqlcode
+                   MOVE 'TUTORIAL.SRV'      TO wc-msg-tblcurs
+                   MOVE 'M0160-add-article' TO wc-msg-para
+
                    PERFORM Z0900-error-routine
+
                ELSE
                    DISPLAY 'Produkten har lagts till i registret!'
                END-IF
@@ -385,6 +419,12 @@
 
       *    end of data
            IF SQLSTATE NOT = "02000"
+
+      *        add error trace information
+               MOVE  SQLCODE                  TO wn-msg-sqlcode
+               MOVE 'BCURSRV3'                TO wc-msg-tblcurs
+               MOVE 'M0170-list-customer-ids' TO wc-msg-para
+
                PERFORM Z0900-error-routine
            END-IF
 
@@ -421,6 +461,12 @@
                        DISPLAY 'Produkten har tagits bort!'
                    ELSE
                        DISPLAY 'Ett problem uppstod vid borttagningen'
+
+      *                add error trace information
+                       MOVE  SQLCODE               TO wn-msg-sqlcode
+                       MOVE 'TUTORIAL.SRV'         TO wc-msg-tblcurs
+                       MOVE 'M0180-delete-article' TO wc-msg-para
+
                        PERFORM Z0900-error-routine
                    END-IF
 
@@ -458,6 +504,12 @@
                 SET is-existing-id-number TO TRUE
            ELSE
                IF SQLSTATE NOT = "02000"
+
+      *            add error trace information
+                   MOVE  SQLCODE                  TO wn-msg-sqlcode
+                   MOVE 'TUTORIAL.SRV'            TO wc-msg-tblcurs
+                   MOVE 'M0190-confirm-id-number' TO wc-msg-para
+
                    PERFORM Z0900-error-routine
                END-IF
            END-IF
@@ -468,8 +520,7 @@
        Z0900-error-routine.
 
       *    requires the ending dot (and no extension)!
-
            COPY Z0900-error-routine.
+           .
 
-            .
       **********************************************************
