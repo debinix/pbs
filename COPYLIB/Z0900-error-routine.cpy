@@ -78,6 +78,11 @@
                CALL 'SQLLOG' USING 'Program fel DSNTIAR'
            END-IF
 
+      *    reset error message (except source file name)
+           MOVE ZERO TO wn-msg-sqlcode
+           MOVE SPACE TO wc-msg-tblcurs
+           MOVE SPACE TO wc-msg-para
+
            DISPLAY SPACE
            DISPLAY 'Tryck <Enter> för att fortsätta...'
                WITH NO ADVANCING
