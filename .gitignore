@@ -21,4 +21,5 @@ LOADLIB/*.int
 
 # Ignore application error-message log files
 
+*.log
 data/*.log
