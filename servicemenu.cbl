@@ -24,7 +24,9 @@
 
            EXEC SQL INCLUDE CUSTOMER END-EXEC.
 
-      *    cursors
+      **********************************************************
+      *    cursor area
+      **********************************************************
 
       *    list produkter
            EXEC SQL
@@ -43,6 +45,7 @@
                ORDER BY SRV_ID DESC
            END-EXEC
 
+      **********************************************************
       *    switches
        01  menu-switches.
            05 is-exit-update-menu-switch      PIC X(1) VALUE 'N'.
@@ -105,50 +108,7 @@
       **********************************************************
        M0110-list-articles.
 
-           DISPLAY HEADLINE
-           DISPLAY 'PRODUKTREGISTER'
-           DISPLAY HEADLINE
-           DISPLAY 'Id|Artikel   |Beskrivning' WITH NO ADVANCING
-           DISPLAY '                             |Pris/faktura (kr)'
-           DISPLAY HEADLINE
-
-           EXEC SQL
-               OPEN BCURSRV1
-           END-EXEC
-
-           EXEC SQL
-               FETCH BCURSRV1
-                   INTO :SRV-SRV-ID, :SRV-ARTNO,
-                        :SRV-DESCRIPTION, :SRV-CHARGE
-           END-EXEC
-
-           PERFORM UNTIL SQLCODE NOT = ZERO
-
-               MOVE SRV-SRV-ID TO we-srv-id
-               MOVE SRV-CHARGE TO we-charge
-               DISPLAY we-srv-id
-                       '|' SRV-ARTNO
-                       '|' SRV-DESCRIPTION
-                       '|' we-charge
-
-      *        fetch next row
-               EXEC SQL
-               FETCH BCURSRV1
-                   INTO :SRV-SRV-ID, :SRV-ARTNO,
-                        :SRV-DESCRIPTION, :SRV-CHARGE
-               END-EXEC
-
-           END-PERFORM
-
-      *    end of data
-           IF SQLSTATE NOT = "02000"
-               PERFORM Z0900-error-routine
-           END-IF
-
-      *    close cursor sum up revenue
-           EXEC SQL
-               CLOSE BCURSRV1
-           END-EXEC
+           PERFORM U0200-list-services
 
            DISPLAY SPACE
            DISPLAY 'Press <Enter> för att fortsätta...'
@@ -195,7 +155,8 @@
       **********************************************************
        M0130-update-article-number.
 
-           PERFORM M0180-confirm-id-number
+           PERFORM U0100-confirm-id-number
+
            IF is-existing-id-number
 
                DISPLAY HEADLINE
@@ -231,7 +192,8 @@
       **********************************************************
        M0140-update-description.
 
-           PERFORM M0180-confirm-id-number
+           PERFORM U0100-confirm-id-number
+
            IF is-existing-id-number
 
                DISPLAY HEADLINE
@@ -268,7 +230,8 @@
       **********************************************************
        M0150-update-charge.
 
-           PERFORM M0180-confirm-id-number
+           PERFORM U0100-confirm-id-number
+
            IF is-existing-id-number
 
                MOVE w9-charge TO we-charge
@@ -380,9 +343,9 @@
       **********************************************************
        M0170-delete-article.
 
-           PERFORM M0180-confirm-id-number
-           IF is-existing-id-number
+           PERFORM U0100-confirm-id-number
 
+           IF is-existing-id-number
 
                DISPLAY HEADLINE
                DISPLAY 'Följande produkt kommer att tas bort:'
@@ -426,11 +389,11 @@
 
 
       **********************************************************
-       M0180-confirm-id-number.
+       U0100-confirm-id-number.
 
            MOVE 'N' TO is-existing-id-number-switch
 
-           PERFORM M0110-list-articles
+           PERFORM U0200-list-services
 
            DISPLAY HEADLINE
            DISPLAY 'Ge id-nummer för åtgärd'
@@ -452,11 +415,67 @@
       *            add error trace information
                    MOVE  SQLCODE                  TO wn-msg-sqlcode
                    MOVE 'TUTORIAL.SRV'            TO wc-msg-tblcurs
-                   MOVE 'M0180-confirm-id-number' TO wc-msg-para
+                   MOVE 'U0100-confirm-id-number' TO wc-msg-para
 
                    PERFORM Z0900-error-routine
                END-IF
            END-IF
+
+           .
+
+      **********************************************************
+       U0200-list-services.
+
+           DISPLAY HEADLINE
+           DISPLAY 'PRODUKTREGISTER'
+           DISPLAY HEADLINE
+           DISPLAY 'Id|Artikel   |Beskrivning' WITH NO ADVANCING
+           DISPLAY '                             |Pris/faktura (kr)'
+           DISPLAY HEADLINE
+
+           EXEC SQL
+               OPEN BCURSRV1
+           END-EXEC
+
+           EXEC SQL
+               FETCH BCURSRV1
+                   INTO :SRV-SRV-ID, :SRV-ARTNO,
+                        :SRV-DESCRIPTION, :SRV-CHARGE
+           END-EXEC
+
+           PERFORM UNTIL SQLCODE NOT = ZERO
+
+               MOVE SRV-SRV-ID TO we-srv-id
+               MOVE SRV-CHARGE TO we-charge
+               DISPLAY we-srv-id
+                       '|' SRV-ARTNO
+                       '|' SRV-DESCRIPTION
+                       '|' we-charge
+
+      *        fetch next row
+               EXEC SQL
+               FETCH BCURSRV1
+                   INTO :SRV-SRV-ID, :SRV-ARTNO,
+                        :SRV-DESCRIPTION, :SRV-CHARGE
+               END-EXEC
+
+           END-PERFORM
+
+      *    end of data
+           IF SQLSTATE NOT = "02000"
+
+      *        add error trace information
+               MOVE  SQLCODE                  TO wn-msg-sqlcode
+               MOVE 'BCURSRV1'                TO wc-msg-tblcurs
+               MOVE 'U0200-list-services'     TO wc-msg-para
+
+               PERFORM Z0900-error-routine
+           END-IF
+
+      *    close cursor sum up revenue
+           EXEC SQL
+               CLOSE BCURSRV1
+           END-EXEC
 
            .
 
