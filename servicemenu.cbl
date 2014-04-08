@@ -22,8 +22,6 @@
 
            EXEC SQL INCLUDE SRV END-EXEC.
 
-           EXEC SQL INCLUDE CUSTOMER END-EXEC.
-
       **********************************************************
       *    cursor area
       **********************************************************
