@@ -18,40 +18,6 @@
       **********************************************************
        WORKING-STORAGE SECTION.
 
-           EXEC SQL INCLUDE SQLCA END-EXEC.
-
-           EXEC SQL INCLUDE DEBTOR END-EXEC.
-
-           EXEC SQL INCLUDE INVOICE END-EXEC.
-
-           EXEC SQL INCLUDE INVITEM END-EXEC.
-
-           EXEC SQL INCLUDE ITEM END-EXEC.
-
-           EXEC SQL INCLUDE ADDR END-EXEC.
-
-           EXEC SQL INCLUDE CUSTOMER END-EXEC.
-
-           EXEC SQL INCLUDE INLOG END-EXEC.
-
-           EXEC SQL INCLUDE SRV END-EXEC.
-
-           EXEC SQL INCLUDE FINDATA END-EXEC.
-
-           EXEC SQL INCLUDE INERROR END-EXEC.
-
-      *    declared cursors
-
-      *    list PBS Ekonomi customers
-           EXEC SQL
-               DECLARE BCURS1 CURSOR FOR
-               SELECT C.CUST_ID, C.ORGNO, C.NAME
-               FROM TUTORIAL.CUSTOMER C
-               WHERE C.CUSTNO NOT LIKE 'PBS%'
-               ORDER BY C.CUST_ID
-           END-EXEC
-
-
       *    switches
        01  menu-switches.
            05 is-exit-application-switch      PIC X(1) VALUE 'N'.
@@ -107,19 +73,19 @@
                EVALUATE wc-accept
 
                    WHEN '10'
-                       PERFORM C0100-load-invoices
+                       PERFORM C0100-call-loadinvoices
                    WHEN '20'
-                       PERFORM E0100-submit-invoices
+                       PERFORM E0100-call-submitinv
                    WHEN '30'
-                       PERFORM G0100-statistics
+                       PERFORM G0100-call-statistics
                    WHEN '40'
-                       PERFORM I0100-company-reports
+                       PERFORM I0100-call-reports
                    WHEN '50'
-                       PERFORM K0100-update-customers
+                       PERFORM K0100-call-customermenu
                    WHEN '60'
-                       PERFORM M0100-update-products
+                       PERFORM M0100-call-servicemenu
                    WHEN '70'
-                       PERFORM X0100-maintenance
+                       PERFORM X0100-call-maintenance
                    WHEN '99'
                        SET is-exit-application TO TRUE
                        CONTINUE
@@ -151,7 +117,7 @@
            .     
 
       **********************************************************
-       C0100-load-invoices.
+       C0100-call-loadinvoices.
 
            MOVE 'N' TO is-exit-load-file-menu-switch
            PERFORM UNTIL is-exit-load-file-menu
@@ -187,7 +153,7 @@
            .
 
       **********************************************************
-       E0100-submit-invoices.
+       E0100-call-submitinv.
 
            MOVE 'N' TO is-exit-print-menu-switch
            PERFORM UNTIL is-exit-print-menu
@@ -233,7 +199,7 @@
 
 
       **********************************************************
-       G0100-statistics.
+       G0100-call-statistics.
 
            MOVE 'N' TO is-exit-statistics-menu-switch
            PERFORM UNTIL is-exit-statistics-menu
@@ -273,7 +239,7 @@
            .
 
       **********************************************************
-       I0100-company-reports.
+       I0100-call-reports.
 
            MOVE 'N' TO is-exit-pbs-rpt-menu-switch
            PERFORM UNTIL is-exit-pbs-rpt-menu
@@ -313,7 +279,7 @@
            .
 
       **********************************************************
-       K0100-update-customers.
+       K0100-call-customermenu.
 
            MOVE 'N' TO is-exit-customer-menu-switch
            PERFORM UNTIL is-exit-customer-menu
@@ -322,16 +288,16 @@
                EVALUATE wc-accept
 
                    WHEN '51'
-                       PERFORM K0120-display-customer-list
+                       CALL 'customermenu' USING wc-accept
                        MOVE SPACE TO wc-accept
                    WHEN '52'
-      *                PERFORM K0130-update-customer
+                       CALL 'customermenu' USING wc-accept
                        MOVE SPACE TO wc-accept
                    WHEN '53'
-      *                PERFORM K0140-add-new-customer
+                       CALL 'customermenu' USING wc-accept
                        MOVE SPACE TO wc-accept
                    WHEN '54'
-      *                PERFORM K0150-inactivate-customer
+                       CALL 'customermenu' USING wc-accept
                        MOVE SPACE TO wc-accept
                    WHEN '59'
                        SET is-exit-customer-menu TO TRUE
@@ -361,52 +327,7 @@
            .
 
       **********************************************************
-       K0120-display-customer-list.
-
-
-           DISPLAY '-----------------'
-           DISPLAY 'BEFINTLIGA KUNDER'
-           DISPLAY '-----------------'
-
-           EXEC SQL
-               OPEN BCURS1
-           END-EXEC
-
-           EXEC SQL
-               FETCH BCURS1
-                   INTO :CUSTOMER-CUST-ID, :CUSTOMER-ORGNO,
-                        :CUSTOMER-NAME
-           END-EXEC
-
-           PERFORM UNTIL SQLCODE NOT = ZERO
-
-               DISPLAY CUSTOMER-CUST-ID
-                       '|' CUSTOMER-ORGNO
-                       '|' CUSTOMER-NAME
-
-      *        fetch next row
-               EXEC SQL
-               FETCH BCURS1
-                   INTO :CUSTOMER-CUST-ID, :CUSTOMER-ORGNO,
-                        :CUSTOMER-NAME
-               END-EXEC
-
-           END-PERFORM
-
-      *    end of data
-           IF SQLSTATE NOT = "02000"
-               PERFORM Z0900-error-routine
-           END-IF
-
-      *    close cursor
-           EXEC SQL
-               CLOSE BCURS1
-           END-EXEC
-
-           .
-
-      **********************************************************
-       M0100-update-products.
+       M0100-call-servicemenu.
 
            MOVE 'N' TO is-exit-product-menu-switch
            PERFORM UNTIL is-exit-product-menu
@@ -455,7 +376,7 @@
            .
 
       **********************************************************
-       X0100-maintenance.
+       X0100-call-maintenance.
 
            MOVE 'N' TO is-exit-admin-menu-switch
            PERFORM UNTIL is-exit-maintenance-menu
@@ -511,15 +432,6 @@
            DISPLAY 'Tryck <Enter> för att avsluta...'
                WITH NO ADVANCING
            ACCEPT wc-accept
-           .
-
-      **********************************************************
-       Z0900-error-routine.
-
-      *    requires the ending dot (and no extension)!
-
-           COPY Z0900-error-routine.
-
            .
 
       **********************************************************
