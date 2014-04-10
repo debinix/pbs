@@ -399,7 +399,7 @@
            ACCEPT w9-srv-id
 
            EXEC SQL
-               SELECT S.ARTNO, S.DESCRIPTION, S.CHARGE
+               SELECT DISTINCT S.ARTNO, S.DESCRIPTION, S.CHARGE
                    INTO :wc-artno, :wc-description, :w9-charge
                    FROM TUTORIAL.SRV S
                    WHERE S.SRV_ID = :w9-srv-id
@@ -470,7 +470,7 @@
                PERFORM Z0900-error-routine
            END-IF
 
-      *    close cursor sum up revenue
+      *    close cursor
            EXEC SQL
                CLOSE BCURSRV1
            END-EXEC
