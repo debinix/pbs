@@ -71,7 +71,7 @@
 
 
       *    Various constants
-       01  HEADLINE                     PIC X(72)   VALUE ALL '-'.
+       01  HEADLINE                     PIC X(78)   VALUE ALL '-'.
 
        LINKAGE SECTION.
        01  lc-accept                    PIC X(2)    VALUE SPACE.

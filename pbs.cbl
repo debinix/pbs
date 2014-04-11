@@ -44,7 +44,7 @@
        01  wc-accept                    PIC X(2)    VALUE SPACE.
        
       *    Various constants
-       01  HEADLINE                     PIC X(72)   VALUE ALL '-'.
+       01  HEADLINE                     PIC X(78)   VALUE ALL '-'.
        
            
       **********************************************************
@@ -299,6 +299,9 @@
                    WHEN '54'
                        CALL 'customermenu' USING wc-accept
                        MOVE SPACE TO wc-accept
+                   WHEN '55'
+                       CALL 'customermenu' USING wc-accept
+                       MOVE SPACE TO wc-accept
                    WHEN '59'
                        SET is-exit-customer-menu TO TRUE
                        CONTINUE
@@ -317,8 +320,9 @@
            DISPLAY HEADLINE
            DISPLAY '(51) Visa kundregister'
            DISPLAY '(52) Uppdatera kundregistret'
-           DISPLAY '(53) Lägg till ny kund'
-           DISPLAY '(54) Inaktivera kund'
+           DISPLAY '(53) Uppdatera kunds val av service'
+           DISPLAY '(54) Lägg till ny kund'
+           DISPLAY '(55) Inaktivera kund'
            DISPLAY SPACE
            DISPLAY '(59) Tillbaka till huvudmenyn'
            DISPLAY HEADLINE
