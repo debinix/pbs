@@ -151,7 +151,8 @@ CREATE UNIQUE INDEX idx_inerror
 	ON INERROR(INERR_ID);
 
 -- ---------------------------------------------------------------------- 
--- Add table "SRV"                                                    
+-- Add table "SRV" 
+-- TYPE:  "P" Print service, "I": Invoice service                                                  
 -- ---------------------------------------------------------------------- 
 
 CREATE TABLE SRV (
@@ -159,6 +160,7 @@ CREATE TABLE SRV (
     ARTNO CHAR(10) NOT NULL,
     DESCRIPTION CHAR(40) NOT NULL,
     CHARGE DECIMAL(5,2) NOT NULL,
+    TYPE CHAR(1) NOT NULL,
     /* unique */
    UNIQUE (ARTNO),
     /* keys */

@@ -170,16 +170,16 @@ VALUES(2,'Felaktig totalsumma',1);
 DELETE FROM SRV;
 
 INSERT INTO SRV
-(SRV_ID,ARTNO,DESCRIPTION,CHARGE)
-VALUES (1,'P100','Faktura print, baspapper, enfärg', 1.25);
+(SRV_ID,ARTNO,DESCRIPTION,CHARGE,TYPE)
+VALUES (1,'P100','Faktura print, baspapper, enfärg', 1.25,'P');
 
 INSERT INTO SRV
-(SRV_ID,ARTNO,DESCRIPTION,CHARGE)
-VALUES (2,'P200','Faktura print, glossy, färg', 1.95);
+(SRV_ID,ARTNO,DESCRIPTION,CHARGE,TYPE)
+VALUES (2,'P200','Faktura print, glossy, färg', 1.95,'P');
 
 INSERT INTO SRV
-(SRV_ID,ARTNO,DESCRIPTION,CHARGE)
-VALUES (3,'F50','Faktura Service, bas', 3.50);
+(SRV_ID,ARTNO,DESCRIPTION,CHARGE,TYPE)
+VALUES (3,'F50','Faktura service, bas', 3.50,'I');
 
 
 

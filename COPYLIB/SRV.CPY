@@ -8,6 +8,8 @@
               DESCRIPTION                    CHAR (40)
                                              NOT NULL,
               CHARGE                         DECIMAL (5, 2)
+                                             NOT NULL,
+              TYPE                           CHAR (1)
                                              NOT NULL
            )
            END-EXEC.
@@ -18,3 +20,4 @@
            03 SRV-ARTNO                      PIC X(10).
            03 SRV-DESCRIPTION                PIC X(40).
            03 SRV-CHARGE                     PIC S9(3)V9(2) COMP-3.
+           03 SRV-TYPE                       PIC X.
