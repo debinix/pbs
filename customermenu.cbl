@@ -872,7 +872,7 @@
 
            EXEC SQL
                UPDATE TUTORIAL.ADDR
-               SET STREET = :wc-postno
+               SET POSTNO = :wc-postno
                WHERE ADDR_ID = :CUSTOMER-ADDR-ID
            END-EXEC
 
@@ -906,7 +906,7 @@
 
            EXEC SQL
                UPDATE TUTORIAL.ADDR
-               SET STREET = :wc-place
+               SET PLACE = :wc-place
                WHERE ADDR_ID = :CUSTOMER-ADDR-ID
            END-EXEC
 
@@ -1441,24 +1441,24 @@
 
                DISPLAY 'Skriv bokstavskod för att lägga till uppgift'
 
-               DISPLAY 'NA - Företag: ' wc-custname
-               DISPLAY 'ST - Gatuadress: ' wc-street
-               DISPLAY 'PO - Postnummer: ' wc-postno
-               DISPLAY 'PL - Postort: ' wc-place
-               DISPLAY 'TE - Telefon: ' wc-tel
-               DISPLAY 'EM - Email: ' wc-email
-               DISPLAY 'OR - Org. nummer: ' wc-orgno
-               DISPLAY 'OU - Kontaktperson: ' wc-contact
-               DISPLAY 'CU - Kundnummer: ' wc-custno
-               DISPLAY 'BO - Styrelsen säte: ' wc-boardplc
-               DISPLAY 'DE - Dröjsmålsränta: ' we-delrate
-               DISPLAY 'DU - Förfallodagar: ' we-duedays
-               DISPLAY 'VA - MVS reg. nr:' wc-vatregno
-               DISPLAY 'BG - Bankgiro: ' wc-bankgiro
-               DISPLAY 'PG - Postgiro: ' wc-postgiro
+               DISPLAY 'NA - Företag                   : ' wc-custname
+               DISPLAY 'ST - Gatuadress                : ' wc-street
+               DISPLAY 'PO - Postnummer                : ' wc-postno
+               DISPLAY 'PL - Postort                   : ' wc-place
+               DISPLAY 'TE - Telefon                   : ' wc-tel
+               DISPLAY 'EM - Email                     : ' wc-email
+               DISPLAY 'OR - Org. nummer               : ' wc-orgno
+               DISPLAY 'OU - Kontaktperson             : ' wc-contact
+               DISPLAY 'CU - Kundnummer                : ' wc-custno
+               DISPLAY 'BO - Styrelsen säte            : ' wc-boardplc
+               DISPLAY 'DE - Dröjsmålsränta            : ' we-delrate
+               DISPLAY 'DU - Förfallodagar             :   ' we-duedays
+               DISPLAY 'VA - MVS reg. nr               : ' wc-vatregno
+               DISPLAY 'BG - Bankgiro                  : ' wc-bankgiro
+               DISPLAY 'PG - Postgiro                  : ' wc-postgiro
 
       *        these two items may be NULL in table CUSTOMER
-               DISPLAY 'WE - Webbaddress (optional):' wc-web
+               DISPLAY 'WE - Webbaddress (optional)    :' wc-web
                DISPLAY 'NO - Text på faktura (optional):' wc-ournote
 
                DISPLAY 'S - Spara ovanstående uppgifter'
