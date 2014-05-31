@@ -50,6 +50,9 @@
                88  is-exit-update-menu                 VALUE 'Y'.
            05 is-existing-id-number-switch    PIC X(1) VALUE 'N'.
                88  is-existing-id-number               VALUE 'Y'.
+           05 is-invalid-user-input-switch    PIC X(1) VALUE 'N'.
+               88  is-invalid-user-input               VALUE 'Y'.
+
 
       *    working storage data for error routine
            COPY Z0900-error-wkstg.
@@ -64,10 +67,11 @@
 
 
       *    Updating table variables
-       01  w9-srv-id                    PIC S9(9)         COMP.
+       01  w9-srv-id                    PIC S9(9)           COMP.
        01  wc-artno                     PIC X(10)    VALUE SPACE.
        01  wc-description               PIC X(40)    VALUE SPACE.
-       01  w9-charge                    PIC S9(3)V9(2) COMP-3.
+       01  w9-charge                    PIC S9(3)V9(2)    COMP-3.
+       01  wc-srv-type                  PIC X(1)     VALUE SPACE.
 
 
       *    Various constants
@@ -267,10 +271,27 @@
       **********************************************************
        M0160-add-article.
 
+           MOVE 'N' TO is-invalid-user-input-switch
+
            DISPLAY HEADLINE
            DISPLAY 'Ge ett nytt artikelnummer för denna nya produkt'
            DISPLAY ': ' WITH NO ADVANCING
            ACCEPT wc-artno(1:10)
+
+           DISPLAY HEADLINE
+           DISPLAY 'Ge typkoden för denna tjänst '  WITH NO ADVANCING
+           DISPLAY 'P för skriva ut fakturor, I fakturabevakning '
+           DISPLAY ': ' WITH NO ADVANCING
+           ACCEPT wc-accept(1:1)
+
+           EVALUATE TRUE
+               WHEN wc-accept = 'P' OR wc-accept = 'p'
+                   MOVE FUNCTION UPPER-CASE(wc-accept) TO wc-srv-type
+               WHEN wc-accept = 'I' OR wc-accept = 'i'
+                   MOVE FUNCTION UPPER-CASE(wc-accept) TO wc-srv-type
+               WHEN OTHER
+                   SET is-invalid-user-input TO TRUE
+           END-EVALUATE
 
            DISPLAY HEADLINE
            DISPLAY 'Ge en ny beskrivning'
@@ -282,59 +303,63 @@
            DISPLAY ': ' WITH NO ADVANCING
            ACCEPT w9-charge
 
-      *    open cursor
-           EXEC SQL
-               OPEN BCURSRV2
-           END-EXEC
-
-      *    fetch first row (which now have the highest id - i.e. PK)
-           EXEC SQL
-               FETCH BCURSRV2
-               INTO :w9-srv-id
-           END-EXEC
-
-           IF SQLCODE NOT = ZERO
-               DISPLAY 'Ett problem uppstod för att hitta nästa rad!'
-
-      *        add error trace information
-               MOVE  SQLCODE            TO wn-msg-sqlcode
-               MOVE 'BCURSRV2'          TO wc-msg-tblcurs
-               MOVE 'M0160-add-article' TO wc-msg-para
-
-               PERFORM Z0900-error-routine
+           IF is-invalid-user-input
+               DISPLAY 'Givna indata är fel eller saknas - försök igen'
            ELSE
-      *        add one for new article
-               ADD 1 TO w9-srv-id
-
-      *        add product to table
+      *        open cursor
                EXEC SQL
-                   INSERT INTO TUTORIAL.SRV
-                   VALUES (:w9-srv-id, :wc-artno,
-                           :wc-description, :w9-charge)
+                   OPEN BCURSRV2
+               END-EXEC
+
+      *        fetch first row
+               EXEC SQL
+                   FETCH BCURSRV2
+                   INTO :w9-srv-id
                END-EXEC
 
                IF SQLCODE NOT = ZERO
-                   DISPLAY 'Produkten kunde inte läggas till!'
+                   DISPLAY 'Ett problem uppstod med nästa rad!'
 
       *            add error trace information
                    MOVE  SQLCODE            TO wn-msg-sqlcode
-                   MOVE 'TUTORIAL.SRV'      TO wc-msg-tblcurs
+                   MOVE 'BCURSRV2'          TO wc-msg-tblcurs
                    MOVE 'M0160-add-article' TO wc-msg-para
 
                    PERFORM Z0900-error-routine
-
                ELSE
-                   MOVE SQLERRD(3)TO we-sqlrows
-                   DISPLAY we-sqlrows ' rad har lagts till i registret'
+      *            add one for new article
+                   ADD 1 TO w9-srv-id
+
+      *            add product to table
+                   EXEC SQL
+                       INSERT INTO TUTORIAL.SRV
+                       VALUES (:w9-srv-id, :wc-artno, :wc-description,
+                               :w9-charge, :wc-srv-type)
+                   END-EXEC
+
+                   IF SQLCODE NOT = ZERO
+                       DISPLAY 'Produkten kunde inte läggas till!'
+
+      *                add error trace information
+                       MOVE  SQLCODE            TO wn-msg-sqlcode
+                       MOVE 'TUTORIAL.SRV'      TO wc-msg-tblcurs
+                       MOVE 'M0160-add-article' TO wc-msg-para
+
+                       PERFORM Z0900-error-routine
+
+                   ELSE
+                       MOVE SQLERRD(3)TO we-sqlrows
+                       DISPLAY we-sqlrows ' rad har lagts till'
+                   END-IF
 
                END-IF
 
-           END-IF
+      *        close cursor
+               EXEC SQL
+                   CLOSE BCURSRV2
+               END-EXEC
 
-      *    close cursor
-           EXEC SQL
-               CLOSE BCURSRV2
-           END-EXEC
+           END-IF
 
            .
 
