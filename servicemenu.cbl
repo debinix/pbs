@@ -9,6 +9,10 @@
       **********************************************************
        ENVIRONMENT DIVISION.
       *---------------------------------------------------------
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+      *---------------------------------------------------------
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
       **********************************************************
@@ -60,7 +64,7 @@
       *    Various generic variables
        01  wc-accept                    PIC X(2)     VALUE SPACE.
        01  we-srv-id                    PIC Z9       VALUE ZERO.
-       01  we-charge                    PIC ZZ9.99   VALUE ZERO.
+       01  we-charge                    PIC ZZ9,99   VALUE ZERO.
        01  wc-charge                    PIC X(5)     VALUE SPACE.
        01  we-cust-id                   PIC Z9       VALUE ZERO.
        01  we-sqlrows                   PIC Z9       VALUE ZERO.
