@@ -104,11 +104,11 @@
            DISPLAY HEADLINE
            DISPLAY '(10) Processa inkommande fakturafil'
            DISPLAY '(20) Skriv gäldenärsfakturor'
-           DISPLAY '(30) Processtatestik'
+           DISPLAY '(30) Processtatistik'
       *    DISPLAY '(40) PBS företagsrapporter'
            DISPLAY '(50) Kundregister'
            DISPLAY '(60) Artikelregister'
-           DISPLAY '(70) Program underhåll'
+           DISPLAY '(70) Programunderhåll'
            DISPLAY SPACE
            DISPLAY '(99) Avsluta programmet'
            DISPLAY HEADLINE
@@ -368,7 +368,7 @@
            DISPLAY HEADLINE
            DISPLAY 'SUBMENY ARTIKELREGISTER'
            DISPLAY HEADLINE
-           DISPLAY '(61) Visa all produkter'
+           DISPLAY '(61) Visa alla produkter'
            DISPLAY '(62) Uppdatera produktdetaljer'
            DISPLAY '(63) Lägg till ny produkt'
            DISPLAY '(64) Ta bort produkt'
