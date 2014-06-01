@@ -1102,7 +1102,7 @@
            PERFORM UNTIL wc-orgno NOT EQUAL SPACE
                DISPLAY HEADLINE
                DISPLAY 'Existerande org.nummer: ' CUSTOMER-ORGNO
-               DISPLAY 'Ge en nytt org. nummer'
+               DISPLAY 'Ge en nytt org. nummer (YYMMDD-nnnn)'
                DISPLAY ': ' WITH NO ADVANCING
                ACCEPT wc-orgno
            END-PERFORM
@@ -1462,8 +1462,8 @@
                DISPLAY 'PG - Postgiro                  : ' wc-postgiro
 
       *        these two items may be NULL in table CUSTOMER
-               DISPLAY 'WE - Webbaddress (optional)    :' wc-web
-               DISPLAY 'NO - Text på faktura (optional):' wc-ournote
+               DISPLAY 'WE - Webbaddress (optional)    : ' wc-web
+               DISPLAY 'NO - Text på faktura (optional): ' wc-ournote
 
                DISPLAY 'S - Spara ovanstående uppgifter'
                DISPLAY 'X - Tillbaka till föregående meny'
