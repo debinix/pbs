@@ -248,27 +248,35 @@
                DISPLAY ': ' WITH NO ADVANCING
                ACCEPT w9-charge
 
-               EXEC SQL
-                   UPDATE TUTORIAL.SRV
-                   SET CHARGE = :w9-charge
-                   WHERE SRV_ID = :w9-srv-id
-               END-EXEC
+               EVALUATE TRUE
+                   WHEN w9-charge IS NUMERIC AND w9-charge NOT = ZERO
 
-               IF SQLCODE = ZERO
-                   DISPLAY 'Produktavgiften har uppdaterats!'
-               ELSE
-                   DISPLAY 'Ett problem uppstod vid uppdateringen!'
+                       EXEC SQL
+                           UPDATE TUTORIAL.SRV
+                           SET CHARGE = :w9-charge
+                           WHERE SRV_ID = :w9-srv-id
+                       END-EXEC
 
-      *            add error trace information
-                   MOVE  SQLCODE            TO wn-msg-sqlcode
-                   MOVE 'TUTORIAL.SRV'      TO wc-msg-tblcurs
-                   MOVE 'M0150-update-charge' TO wc-msg-para
+                       IF SQLCODE = ZERO
+                           DISPLAY 'Produktavgiften har uppdaterats!'
+                       ELSE
+                           DISPLAY 'Ett uppdateringsproblem uppstod!'
 
-                   PERFORM Z0900-error-routine
-               END-IF
+      *                    add error trace information
+                           MOVE  SQLCODE            TO wn-msg-sqlcode
+                           MOVE 'TUTORIAL.SRV'      TO wc-msg-tblcurs
+                           MOVE 'M0150-update-charge' TO wc-msg-para
+
+                           PERFORM Z0900-error-routine
+                       END-IF
+                   WHEN w9-charge EQUAL ZERO
+                       DISPLAY 'Indata är 0, saknas eller är felaktiga!'
+                   WHEN OTHER
+                       DISPLAY 'Indata saknas eller är felaktiga!'
+               END-EVALUATE
 
            ELSE
-               DISPLAY 'Ogiltigt id nummer - se meny 61'
+               DISPLAY 'Ogiltigt id nummer'
            END-IF
            .
 
@@ -306,6 +314,13 @@
            DISPLAY 'Ge en ny avgift för denna produkt'
            DISPLAY ': ' WITH NO ADVANCING
            ACCEPT w9-charge
+
+           EVALUATE TRUE
+               WHEN w9-charge IS NUMERIC AND w9-charge NOT = ZERO
+                  CONTINUE
+               WHEN OTHER
+                  SET is-invalid-user-input TO TRUE
+           END-EVALUATE
 
            IF is-invalid-user-input
                DISPLAY 'Givna indata är fel eller saknas - försök igen'
