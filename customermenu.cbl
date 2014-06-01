@@ -601,17 +601,17 @@
 
       *        get in-use services for this customer
                EXEC SQL
-                   SELECT DISTINCT CS.CUST_ID
-                   INTO :SRVCUST-CUST-ID
+                   SELECT DISTINCT CS.SRV_ID
+                   INTO :SRVCUST-SRV-ID
                    FROM TUTORIAL.SRVCUST CS
-                   WHERE CS.SRV_ID = :SRV-SRV-ID
+                   WHERE CS.CUST_ID = :w9-cust-id
                END-EXEC
 
                MOVE SRV-SRV-ID TO we-srv-id
                MOVE SRV-CHARGE TO we-charge
 
       *        mark current in-use service for this customer
-               IF SRVCUST-CUST-ID = w9-cust-id AND SQLCODE NOT = 100
+               IF SQLCODE NOT = 100 AND SRVCUST-SRV-ID = SRV-SRV-ID
                    DISPLAY '*' WITH NO ADVANCING
                ELSE
                    DISPLAY SPACE WITH NO ADVANCING
