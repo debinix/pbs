@@ -9,6 +9,10 @@
       **********************************************************
        ENVIRONMENT DIVISION.
       *---------------------------------------------------------
+       CONFIGURATION SECTION.
+       SPECIAL-NAMES.
+           DECIMAL-POINT IS COMMA.
+      *---------------------------------------------------------
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
       **********************************************************
@@ -175,8 +179,8 @@
 
        01  we-cust-id                   PIC Z9       VALUE ZERO.
        01  we-duedays                   PIC Z9       VALUE ZERO.
-       01  we-delrate                   PIC 9.99     VALUE ZERO.
-       01  we-charge                    PIC ZZ9.99   VALUE ZERO.
+       01  we-delrate                   PIC 9,99     VALUE ZERO.
+       01  we-charge                    PIC ZZ9,99   VALUE ZERO.
        01  we-srv-id                    PIC Z9       VALUE ZERO.
        01  we-sqlrows                   PIC Z9       VALUE ZERO.
 
