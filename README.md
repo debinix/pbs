@@ -23,20 +23,18 @@ Source Tree - v1.4.1
 
 ### Directory Structure.
 
-The directory structure for the system development team, with some files:
+The directory structure for the system development team:
+
 ```
 .
+├── COPYLIB
+├── data
 ├── doc
-│   └── various-docs.md
 ├── sql
-│   ├── create_tbls.sql
-│   ├── drop_tbls.sql
-│   └── insert_data.sql
-├── test
-│   └── various-test-plans.t
-└── tools
+└── tex
 ```
 
+COPYLIB contains DLCGEN generated table structures and two error routines used in the project. One for SQL-errors and the other routine logs database errors to file with a timestamp. The sql directory contains the SQL DDL/DML statements to create and populate an initial database. The tex directory is for latex file for invoice pdf creation.
 Cobol source files are kept at root.
 
  
