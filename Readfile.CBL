@@ -140,11 +140,10 @@
        000-POST-CUST.
 
            PERFORM 100-INIT
-           PERFORM 101-INIT
            PERFORM 100-READ-CUST-FILE UNTIL EOF.
            PERFORM 100-END
            IF  VALID-POST-FILE
-               PERFORM 101-INIT
+               PERFORM 100-INIT
                PERFORM 101-READ-CUST-FILE UNTIL EOF.
            CLOSE INDATA FELDATA
            STOP RUN.
@@ -157,11 +156,20 @@
            MOVE 'N' TO END-POST-EXIST-SW
            MOVE ZERO TO POSTER-COUNT
 
-           OPEN OUTPUT FELDATA.
+           OPEN OUTPUT FELDATA
+           OPEN INPUT INDATA
+           IF INFIL-SUCCESSFUL
+               READ INDATA
+                   AT END SET EOF TO TRUE
+               END-READ
+           ELSE
+               SET EOF TO TRUE
+               DISPLAY ' Indata file error: '.
+
       ***********************
 
        100-END.
-       CLOSE INDATA.
+       CLOSE INDATA FELDATA.
       ***********************
 
        101-INIT.

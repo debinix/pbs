@@ -144,7 +144,6 @@
            MOVE 'ReadBG.cbl' TO WC-MSG-SRCFILE
            PERFORM 100-INIT
            PERFORM 100-READ-BG-FILE UNTIL EOF.
-           PERFORM 100-END
            IF  VALID-POST-FILE
                PERFORM 101-INIT
                PERFORM 101-READ-BG-FILE UNTIL EOF.
@@ -175,6 +174,7 @@
       ***********************
 
        101-INIT.
+           CLOSE BGMAXFIL BGFELDATA
            MOVE 'N' TO END-OF-FILE
            OPEN OUTPUT BGFELDATA
                 INPUT BGMAXFIL
